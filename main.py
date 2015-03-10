@@ -22,12 +22,28 @@ def Menu():
     print("6. Exit Auto Registration System\n")
 
     select = input("Select an option ")
-    if select == '6':
-        Exit()
-
+    
     if select == '1':
         NewVehicle()
     
+    elif select == '2':
+        AutoTransaction()
+	
+    elif select == '3':
+        DriverRegistration()
+   
+    elif select == '4':
+        ViolationRecord()
+
+    elif select == '5':
+         RecordSearch()
+    
+    elif select == '6':
+         Exit()
+
+    else: 
+        print("Error, invalid input.")
+
     Menu()
 
 if __name__ == "__main__":
