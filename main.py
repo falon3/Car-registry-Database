@@ -14,7 +14,7 @@ def Exit():
     print("GoodBye!")
     exit()
          
-def Menu():
+def Menu(connection, curs):
 
     print("1. New Vehicle Registration\n")
     print("2. Auto Transaction\n")
@@ -26,19 +26,19 @@ def Menu():
     select = input("Select an option ")
     
     if select == '1':
-        NewVehicle()
+        NewVehicle(connection, curs)
     
     elif select == '2':
-        AutoTransaction()
+        AutoTransaction(connection, curs)
 	
     elif select == '3':
-        DriverRegistration()
+        DriverRegistration(connection, curs)
    
     elif select == '4':
-        ViolationRecord()
+        ViolationRecord(connection, curs)
 
     elif select == '5':
-         RecordSearch()
+         RecordSearch(connection, curs)
     
     elif select == '6':
          Exit()
@@ -46,7 +46,7 @@ def Menu():
     else: 
         print("Error, invalid input.")
 
-    Menu()
+    Menu(connection, curs)
 
 if __name__ == "__main__":
 
@@ -94,4 +94,4 @@ if __name__ == "__main__":
     # this makes everything auto commit so no worries of exiting before commiting new info
     connection.autocommit = 1
 
-    Menu()
+    Menu(connection, curs)
