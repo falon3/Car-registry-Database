@@ -11,6 +11,7 @@ def Exit():
 
     connection.close()   
     print("GoodBye!")
+    exit()
          
 def Menu():
 
