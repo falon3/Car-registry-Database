@@ -2,6 +2,7 @@ import sys
 import cx_Oracle
 from new_vehicle import NewVehicle
 from violation_record import ViolationRecord
+from new_driver import NewDriver
 # 1. from filename (without .py) import functionname
 # OR 2. import filename
 # in the first case you call with functionname
