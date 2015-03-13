@@ -33,7 +33,7 @@ def Menu(connection, curs):
         AutoTransaction(connection, curs)
 	
     elif select == '3':
-        DriverRegistration(connection, curs)
+        NewDriver(connection, curs)
    
     elif select == '4':
         ViolationRecord(connection, curs)
