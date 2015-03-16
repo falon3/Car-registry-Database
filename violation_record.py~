@@ -1,0 +1,5 @@
+def ViolationRecord():
+    '''
+    This component is used by a police officer to issue a traffic ticket
+    and record the violation.
+    '''
