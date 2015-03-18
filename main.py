@@ -58,6 +58,8 @@ if __name__ == "__main__":
 
     try:
         connection = cx_Oracle.connect(login)
+        # this makes everything auto commit so no worries of exiting before commiting new info
+        connection.autocommit = 1
         curs = connection.cursor()
         
         '''
@@ -91,8 +93,5 @@ if __name__ == "__main__":
         error, = exc.args
         print( sys.stderr, "Oracle code:", error.code)
         print( sys.stderr, "Oracle message:", error.message)
-
-    # this makes everything auto commit so no worries of exiting before commiting new info
-    connection.autocommit = 1
 
     Menu(connection, curs)
