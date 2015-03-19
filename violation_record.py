@@ -75,6 +75,21 @@ def GetValidDate(connection, curs):
 
     return ValidDate
 
+def GetValidLocation(connection,curs):
+    """ 
+    Prompt user for a location name and verify that user input
+    only has letters or spaces in it. If not, keep prompting until
+    a valid location format is recieved. Trust that user entered a valid 
+    location name if this format is satisfied.
+    """ 
+    location = input("city of violation: ")
+    for letter in location:
+        if ((letter.isalpha() == False) and (letter != " ")):
+            print("that wasn't a valid location!\n")
+            GetValidLocation(connection, curs)
+            
+    return location
+
 
 def ViolationRecord(connection, curs):
     '''
@@ -96,8 +111,8 @@ def ViolationRecord(connection, curs):
     Obtain the informaton needed from user and database to create a 
     ticket record in the database table 'ticket'. Need to check user input
     for validity. The information entered needs to match the formats listed
-    above and the SIN, VIN, officer no., and violation type has to exist in the system already
-    to be be valid.
+    above and the SIN, VIN, officer no., and violation type has to exist in 
+    the system already to be be valid.
     '''
     print("New Violation Record Form")
     # get number of tickets to make new integer ticket number
@@ -113,9 +128,8 @@ def ViolationRecord(connection, curs):
     # get valid officer id from user
     officer_id = GetValidSin(connection, curs, 'officer ID')
 
- 
-    exists = None
     # get type of violation from user and check if a valid violation
+    exists = None
     while exists == None:
 
         v_type = input("enter type of violation: ")
@@ -126,36 +140,40 @@ def ViolationRecord(connection, curs):
         if exists == None:
             print("invalid violation type!\n")
 
+    # get date of violation from user
     vdate = GetValidDate(connection,curs)
             
-    # get location
-    location = '0'
-    while location.isalpha() == False: # CHANGE THIS BECAUSE DOESN'T ALLOW FOR SPACES
-        """
-        Check if string entered is all letters and keep prompting 
-        user to re-enter until it is all letters. Trust that 
-        they entered a valid city name if all letters
-        """
-        location = input("city of violation: ")
-    
-        if location.isalpha() == False:
-            print("that wasn't an alphabetic location!\n")
+    # get place violation happened from user
+    place = GetValidLocation(connection, curs)
 
-    # ask for violation description
+    # ask for any violation descriptions
     notes = input("description of violation made: ")
-    # notes section cannot be empty or get errors
-    if not notes:
-        notes = " "
+    if not notes: # notes section cannot be empty or get errors
+        notes = "NULL"
 
-    # CREATE TICKET RECORD
+    # Print all details back to user to verify correct before inserting data
+    print("\n Summary of Violation \n")
+    print(" Violator's SIN: ", Violator_SIN, "\n Serial_no: ", Vehicle_ID, \
+              "\n Officer_id: ",officer_id, "\n violation type: ", v_type, \
+              "\n Date: ", vdate, "\n location: ", place, "\n notes: ", notes)
+
+    # if user claims the information is not correct then start over and re-do it
+    confirmation = input("\n Is this information correct (y/n)?")
+    if (confirmation == 'n' or confirmation == 'N'):
+        print("Okay let's try that again \n")
+        ViolationRecord(connection, curs)
+
+
+    # Now ready to CREATE TICKET RECORD
     # insert new ticket_no, violator_no, vehicle_id, office_id, vtype, vdate, 
     # place, descriptions into ticket table
     Values = [(new_ticket_num, Violator_SIN, Vehicle_ID, officer_id, v_type, \
-                  vdate, location, notes)]
+                  vdate, place, notes)]
     curs.bindarraysize = 1
     
     curs.setinputsizes(int, 15, 15, 15, 10, 11, 20, 1024)
-    curs.executemany("INSERT into ticket VALUES (:1, :2, :3, :4, :5, :6, :7, :8)", Values)
+    curs.executemany("INSERT into ticket VALUES \
+                    (:1, :2, :3, :4, :5, :6, :7, :8)", Values)
     
     print("\n Violation Record successfully created\n")
                   
