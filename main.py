@@ -25,7 +25,7 @@ def Menu(connection, curs):
     print("5. Search Engine\n")
     print("6. Exit Auto Registration System\n")
 
-    select = input("Select an option ")
+    select = input("Select an option: ")
     
     if select == '1':
         NewVehicle(connection, curs)
