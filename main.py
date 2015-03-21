@@ -18,7 +18,7 @@ def Exit():
          
 def Menu(connection, curs):
 
-    print("1. New Vehicle Registration\n")
+    print("\n1. New Vehicle Registration\n")
     print("2. Auto Transaction\n")
     print("3. Driver License Registration\n")
     print("4. Violation Record\n")
