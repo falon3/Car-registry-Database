@@ -1,8 +1,9 @@
 def NewDriver(connection, curs):
-"""
+    """
     stuff here. maybe not tonight.
     okay maybe tonight. 
     we may perhaps also want to create a people record if it does not exist.
+    Contents of this comment should be moved to the documentation.
     
     Flow:
     1. Request sin. Check if sin exists in drive_licence
@@ -41,5 +42,44 @@ def NewDriver(connection, curs):
        2 driving conditions in practice (only with corrective lenses, only
        under supervision). It also depends on how the conditions table is set
        up.
+    """
+    newRecUI()
+    sin = requestSIN()
+    if recordExists(sin):
+        pass
+        
 """
+newRecUI
+
+Parameters: none
+Return value: none
+
+Displays prompt and instructions for creating a new driving record.
+"""
+def newRecUI():
+    pass
+
+"""
+requestSIN
+
+Parameters: none
+Return value: String (not to exceed 15 chars) containing the SIN.
+
+Request user input SIN number, checks for compliance with format.
+Prompts for re-entry else; prompts for confirmation.
+"""
+def requestSIN():
+    return ""
+
+"""
+recordExists
+
+Parameters: sin (string), connection, curs (for querying db)
+Return value: TRUE if sin exists, FALSE if not.
+Assumptions: sin is valid format
+
+Checks the people table to see if the SIN already exists.
+"""
+def recordExists(sin, connection, curs):
+    return FALSE
     

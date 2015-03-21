@@ -3,6 +3,7 @@ import cx_Oracle
 from new_vehicle import NewVehicle
 from violation_record import ViolationRecord
 from new_driver import NewDriver
+from record_search import RecordSearch
 # 1. from filename (without .py) import functionname
 # OR 2. import filename
 # in the first case you call with functionname
@@ -17,14 +18,14 @@ def Exit():
          
 def Menu(connection, curs):
 
-    print("1. New Vehicle Registration\n")
+    print("\n1. New Vehicle Registration\n")
     print("2. Auto Transaction\n")
     print("3. Driver License Registration\n")
     print("4. Violation Record\n")
     print("5. Search Engine\n")
     print("6. Exit Auto Registration System\n")
 
-    select = input("Select an option ")
+    select = input("Select an option: ")
     
     if select == '1':
         NewVehicle(connection, curs)
@@ -39,10 +40,10 @@ def Menu(connection, curs):
         ViolationRecord(connection, curs)
 
     elif select == '5':
-         RecordSearch(connection, curs)
+        RecordSearch(connection, curs)
     
     elif select == '6':
-         Exit()
+        Exit()
 
     else: 
         print("Error, invalid input.")
