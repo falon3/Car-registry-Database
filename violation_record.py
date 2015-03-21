@@ -110,9 +110,9 @@ def ViolationRecord(connection, curs):
     # get valid SIN from user
     Violator_SIN = GetValidSin(connection, curs, 'SIN')
     # get valid VIN from user
-    #Vehicle_ID = GetValidVin(connection, curs)
+    Vehicle_ID = GetValidVin(connection, curs)
     # get valid officer id from user
-    #officer_id = GetValidSin(connection, curs, 'officer ID')
+    officer_id = GetValidSin(connection, curs, 'officer ID')
 
 
     #FIGURE OUT HOW TO GET THIS QUERY TO FIND 'PARKING'
