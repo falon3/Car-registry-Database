@@ -20,15 +20,16 @@ def GetValidSin(connection, curs, ID_type):
     while ((Sin.isdigit() == False) or (len(Sin) != 9)):
         print("You didn't enter a 9-digit integer " + ID_type + "!\n")
         Sin = input("enter " + ID_type + ":  ")
-        Sin = int(Sin)
+        
 
+    Sin = int(Sin)
     # check if SIN in system. Recurse function call if not.
     do = "select * from people where SIN =: sin"
     curs.execute(do, {'sin':Sin})
     person = curs.fetchone()
     
     if person == None:
-        print("That " + ID_type + " doesn't exist!")
+        print("That " + ID_type + " doesn't exist in the system!")
         GetValidSin(connection, curs, ID_type)
 
     return Sin
@@ -57,7 +58,7 @@ def GetValidVin(connection, curs):
     vehicle = curs.fetchone()
 
     if vehicle == None:
-        print("That serial number doesn't exist!")
+        print("That serial number doesn't exist in the system!")
         GetValidVin(connection, curs)
 
     return Vin
@@ -107,10 +108,10 @@ def ViolationRecord(connection, curs):
     
     new_ticket_num = str(num_tickets + 1)
 
-    # get valid SIN from user
-    Violator_SIN = GetValidSin(connection, curs, 'SIN')
     # get valid VIN from user
     #Vehicle_ID = GetValidVin(connection, curs)
+    # get valid SIN from user if not 
+    #Violator_SIN = GetValidSin(connection, curs, 'SIN')   
     # get valid officer id from user
     #officer_id = GetValidSin(connection, curs, 'officer ID')
 
@@ -123,8 +124,11 @@ def ViolationRecord(connection, curs):
 
         v_type = input("enter type of violation: ")
         v_type = v_type.upper()
-        query = "select * from ticket_type where UPPER(vtype) =: vio "
-        curs.execute(query, {'vio':v_type})
+        #v_type = v_type.strip()
+        print("|"+ v_type +"|")
+        
+        query = "select * from ticket_type where UPPER(vtype) = '" +v_type + "'"
+        curs.execute(query)
         exists = curs.fetchone()
         print(exists)
 
