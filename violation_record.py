@@ -109,18 +109,11 @@ def ViolationRecord(connection, curs):
     new_ticket_num = str(num_tickets + 1)
 
     # get valid VIN from user
-<<<<<<< HEAD
-    #Vehicle_ID = GetValidVin(connection, curs)
-    # get valid SIN from user if not 
-    #Violator_SIN = GetValidSin(connection, curs, 'SIN')   
-=======
     Vehicle_ID = GetValidVin(connection, curs)
->>>>>>> d4508652d4b0b203feea67ac4b0db0ebddaed711
+    # get valid SIN from user if not 
+    Violator_SIN = GetValidSin(connection, curs, 'SIN')   
     # get valid officer id from user
     officer_id = GetValidSin(connection, curs, 'officer ID')
-
-
-    #FIGURE OUT HOW TO GET THIS QUERY TO FIND 'PARKING'
 
     # get type of violation from user and check if a valid violation
     exists = None
@@ -138,10 +131,6 @@ def ViolationRecord(connection, curs):
 
         if exists == None  :
             print("invalid violation type!\n")
-
-
-
-
 
 
     # get date of violation from user
