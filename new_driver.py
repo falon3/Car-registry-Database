@@ -1,5 +1,5 @@
 def NewDriver(connection, curs):
-"""
+    """
     stuff here. maybe not tonight.
     okay maybe tonight. 
     we may perhaps also want to create a people record if it does not exist.
@@ -42,7 +42,7 @@ def NewDriver(connection, curs):
        2 driving conditions in practice (only with corrective lenses, only
        under supervision). It also depends on how the conditions table is set
        up.
-"""
+    """
     newRecUI()
     sin = requestSIN()
     if recordExists(sin):

@@ -20,11 +20,12 @@ def GetValidSin(connection, curs, ID_type):
     while ((Sin.isdigit() == False) or (len(Sin) != 9)):
         print("You didn't enter a 9-digit integer " + ID_type + "!\n")
         Sin = input("enter " + ID_type + ":  ")
+        Sin = int(Sin)
 
     # check if SIN in system. Recurse function call if not.
     do = "select * from people where SIN =: sin"
     curs.execute(do, {'sin':Sin})
-    person = curs.fetchall()
+    person = curs.fetchone()
     
     if person == None:
         print("That " + ID_type + " doesn't exist!")
@@ -75,21 +76,6 @@ def GetValidDate(connection, curs):
 
     return ValidDate
 
-def GetValidLocation(connection,curs):
-    """ 
-    Prompt user for a location name and verify that user input
-    only has letters or spaces in it. If not, keep prompting until
-    a valid location format is recieved. Trust that user entered a valid 
-    location name if this format is satisfied.
-    """ 
-    location = input("city of violation: ")
-    for letter in location:
-        if ((letter.isalpha() == False) and (letter != " ")):
-            print("that wasn't a valid location!\n")
-            GetValidLocation(connection, curs)
-            
-    return location
-
 
 def ViolationRecord(connection, curs):
     '''
@@ -124,27 +110,37 @@ def ViolationRecord(connection, curs):
     # get valid SIN from user
     Violator_SIN = GetValidSin(connection, curs, 'SIN')
     # get valid VIN from user
-    Vehicle_ID = GetValidVin(connection, curs)
+    #Vehicle_ID = GetValidVin(connection, curs)
     # get valid officer id from user
-    officer_id = GetValidSin(connection, curs, 'officer ID')
+    #officer_id = GetValidSin(connection, curs, 'officer ID')
+
+
+    #FIGURE OUT HOW TO GET THIS QUERY TO FIND 'PARKING'
 
     # get type of violation from user and check if a valid violation
     exists = None
     while exists == None:
 
         v_type = input("enter type of violation: ")
-        query = "select * from ticket_type where vtype =: vio"
+        v_type = v_type.upper()
+        query = "select * from ticket_type where UPPER(vtype) =: vio "
         curs.execute(query, {'vio':v_type})
-        exists = curs.fetchall()
+        exists = curs.fetchone()
+        print(exists)
 
-        if exists == None:
+        if exists == None  :
             print("invalid violation type!\n")
+
+
+
+
+
 
     # get date of violation from user
     vdate = GetValidDate(connection,curs)
-            
+         
     # get place violation happened from user
-    place = GetValidLocation(connection, curs)
+    location = input("location of violation: ")
 
     # ask for any violation descriptions
     notes = input("description of violation made: ")
@@ -153,9 +149,10 @@ def ViolationRecord(connection, curs):
 
     # Print all details back to user to verify correct before inserting data
     print("\n Summary of Violation \n")
-    print(" Violator's SIN: ", Violator_SIN, "\n Serial_no: ", Vehicle_ID, \
-              "\n Officer_id: ",officer_id, "\n violation type: ", v_type, \
-              "\n Date: ", vdate, "\n location: ", place, "\n notes: ", notes)
+    print("Ticket_no: ", new_ticket_num, "\n Violator's SIN: ", Violator_SIN, \
+              "\n Serial_no: ", Vehicle_ID, "\n Officer_id: ",officer_id, \
+              "\n violation type: ", v_type, "\n Date: ", vdate, \
+              "\n location: ", location, "\n notes: ", notes)
 
     # if user claims the information is not correct then start over and re-do it
     confirmation = input("\n Is this information correct (y/n)?")
@@ -168,7 +165,7 @@ def ViolationRecord(connection, curs):
     # insert new ticket_no, violator_no, vehicle_id, office_id, vtype, vdate, 
     # place, descriptions into ticket table
     Values = [(new_ticket_num, Violator_SIN, Vehicle_ID, officer_id, v_type, \
-                  vdate, place, notes)]
+                  vdate, location, notes)]
     curs.bindarraysize = 1
     
     curs.setinputsizes(int, 15, 15, 15, 10, 11, 20, 1024)
