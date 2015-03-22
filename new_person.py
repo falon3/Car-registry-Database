@@ -95,4 +95,12 @@ def NewPerson( SIN, connection, curs):
     if (check == "n"):
         print("\nNew Person was not added to database. Please try again.")
         NewPerson( SIN, connection, curs)
+    
+    # Insert new person into people table
+    data = [(SIN, name, height, weight, eyecolor, haircolor, addr, gender, birthday)]
+    curs.bindarraysize = 1
+    curs.setinputsizes(15, 40, float, float, 10, 10, 50, 1)
+    curs.executemany("INSERT into people (sin, name, height, weight, eyecolor, haircolor, addr, gender, birthday)"
+                        "VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)", data)
 
+    print("\nPerson was succesfully added to database.")
