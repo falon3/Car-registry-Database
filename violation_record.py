@@ -110,8 +110,26 @@ def ViolationRecord(connection, curs):
 
     # get valid VIN from user
     Vehicle_ID = GetValidVin(connection, curs)
-    # get valid SIN from user if not 
-    Violator_SIN = GetValidSin(connection, curs, 'SIN')   
+
+
+    # get valid SIN from user if primary owner is not violator 
+    # (and violator is known) 
+    isRadar = ""
+    while ((isRadar != "Y") and (isRadar != "N")):
+        isRadar = input("Is this ticket being issued to the primary owner of the vehicle? \n (Y/N):  ")
+        isRadar = isRadar.upper()
+    
+    if isRadar == "N": 
+        # prompt user for violator's SIN
+        Violator_SIN = GetValidSin(connection, curs, 'SIN')
+
+    elif isRadar == "Y":  
+        # violator is primary owner of vehicle and get their SIN from database
+        getSIN = "select owner_id from owner where vehicle_id = :vid and UPPER(is_primary_owner) = 'Y' "
+        curs.execute(getSIN, {'vid':Vehicle_ID})
+        Violator_SIN = int(curs.fetchone()[0])
+    
+
     # get valid officer id from user
     officer_id = GetValidSin(connection, curs, 'officer ID')
 
@@ -120,21 +138,18 @@ def ViolationRecord(connection, curs):
     while exists == None:
 
         v_type = input("enter type of violation: ")
-        v_type = v_type.upper()
-        #v_type = v_type.strip()
-        print("|"+ v_type +"|")
-        
-        query = "select * from ticket_type where UPPER(vtype) = '" +v_type + "'"
-        curs.execute(query)
+        v_type = v_type.strip()    # strip any extra whitespace characters
+
+        query = "select * from ticket_type where TRIM((vtype)) = :vio"
+        curs.execute(query, {'vio':v_type})
         exists = curs.fetchone()
-        print(exists)
 
         if exists == None  :
             print("invalid violation type!\n")
-
+    
 
     # get date of violation from user
-    vdate = GetValidDate(connection,curs)
+    vdate = GetValidDate(connection,curs).date()
          
     # get place violation happened from user
     location = input("location of violation: ")
@@ -146,13 +161,13 @@ def ViolationRecord(connection, curs):
 
     # Print all details back to user to verify correct before inserting data
     print("\n Summary of Violation \n")
-    print("Ticket_no: ", new_ticket_num, "\n Violator's SIN: ", Violator_SIN, \
+    print(" Ticket_no: ", new_ticket_num, "\n Violator's SIN: ", Violator_SIN, \
               "\n Serial_no: ", Vehicle_ID, "\n Officer_id: ",officer_id, \
               "\n violation type: ", v_type, "\n Date: ", vdate, \
               "\n location: ", location, "\n notes: ", notes)
 
     # if user claims the information is not correct then start over and re-do it
-    confirmation = input("\n Is this information correct (y/n)?")
+    confirmation = input("\n Is this information correct? \n (y/n): ")
     if (confirmation == 'n' or confirmation == 'N'):
         print("Okay let's try that again \n")
         ViolationRecord(connection, curs)
@@ -166,8 +181,7 @@ def ViolationRecord(connection, curs):
     curs.bindarraysize = 1
     
     curs.setinputsizes(int, 15, 15, 15, 10, 11, 20, 1024)
-    curs.executemany("INSERT into ticket VALUES \
-                    (:1, :2, :3, :4, :5, :6, :7, :8)", Values)
+    curs.executemany("INSERT into ticket VALUES(:1, :2, :3, :4, :5, :6, :7, :8)", Values)
     
     print("\n Violation Record successfully created\n")
                   
