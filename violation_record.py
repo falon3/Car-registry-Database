@@ -17,9 +17,9 @@ def GetValidSin(connection, curs, ID_type):
 
     # prompt for ID_type from user input and check digits and type
     Sin = input("enter " + ID_type + ":  ")
-    while ((Sin.isdigit() == False) or (len(Sin) != 9)):
-        print("You didn't enter a 9-digit integer " + ID_type + "!\n")
-        Sin = input("enter " + ID_type + ":  ")
+    while Sin.isdigit() == False:
+        print("You didn't enter an integer!\n")
+        GetValidSin(connection, curs, 'SIN')
         
 
     Sin = int(Sin)
@@ -47,7 +47,7 @@ def GetValidVin(connection, curs):
     Vin = input("enter vehicle's serial number:  ")
     while (Vin.isdigit() == False):
         print("You didn't enter an integer serial number!\n")
-        Vin = input("enter vehicle's serial number:  ")
+        GetValidVin(connection, curs)
 
     # convert type to int from str
     Vin = int(Vin)
