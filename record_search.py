@@ -13,21 +13,8 @@ def DriverRecord(connection, curs):
     '''
 
     Name_DL = input("Enter driver name or licence number  ")
-    # decide if user entered a name or license number
- 
-    if Name_DL[0].isalpha(): # user entered name
-        Name = Name_DL.upper()
-        query = "SELECT p.name as name, dl.licence_no as licence_no, p.addr as address, \
-                 p.birthday as DOB, dl.class as driving_class, \
-                 dl.expiring_date as expiring_date, dc.description as driving_condition \
-                 FROM people p, drive_licence dl, driving_condition dc, restriction r \
-                 WHERE TRIM(UPPER(p.name)) = :NA and \
-                       p.sin = dl.sin and \
-                       dc.c_id (+)= r.r_id and \
-                       r.licence_no (+)= dl.licence_no"
-        curs.execute(query, {'NA':Name})
-        
-    else: # user entered licence number
+    
+    try: # if integer entered assume it was valid licence number
         DL_num = int(Name_DL)
         query = "SELECT p.name as name, dl.licence_no as licence_no, p.addr as address, \
                  p.birthday as DOB, dl.class as driving_class, \
@@ -39,6 +26,19 @@ def DriverRecord(connection, curs):
                        r.licence_no (+)= dl.licence_no"
         curs.execute(query, {'DL':DL_num})
 
+    except ValueError: # not a number entered so must be a name
+        Name = Name_DL.upper() # make query case-insentive
+        query = "SELECT p.name as name, dl.licence_no as licence_no, p.addr as address, \
+                 p.birthday as DOB, dl.class as driving_class, \
+                 dl.expiring_date as expiring_date, dc.description as driving_condition \
+                 FROM people p, drive_licence dl, driving_condition dc, restriction r \
+                 WHERE TRIM(UPPER(p.name)) = :NA and \
+                       p.sin = dl.sin and \
+                       dc.c_id (+)= r.r_id and \
+                       r.licence_no (+)= dl.licence_no"
+        curs.execute(query, {'NA':Name})
+        
+  
     # get and format the info retrieved if any
     Record = curs.fetchall()
     if Record == []:
@@ -70,7 +70,13 @@ def DriverAbstract(connection, curs):
 
     ID_num = input("Enter driver SIN or licence number  ")
     # decide if user entered a name or license number
-    ID_num = int(ID_num)
+    try:
+        ID_num = int(ID_num)
+        
+    except ValueError: # let the user retry
+        print("That wasn't an integer!\n")
+        DriverAbstract(connection, curs)
+
 
     # see if if was a SIN that exists
     test = "select * from people where sin = :SIN"
@@ -106,7 +112,51 @@ def DriverAbstract(connection, curs):
  
 
 def VehicleHistory(connection, curs):
-    pass
+    ''' FINISH EDITING THIS
+    Vehicle History lists the number of times that a vehicle has been changed
+    hand, the average price, and the number of violations it has been involved
+    in by entering the vehicle's serial number.
+
+    history is searched via a query into the database using what the user 
+    entered as the vehicle's serial number.
+
+    input: user prompted for serial_no
+
+    output: a list of all of the vehicle's history or a message saying there 
+            is no history available for that vehicle
+    '''
+
+    VIN = input("Enter vehicle's serial number:  ")
+    try: 
+        VIN = int(VIN)
+
+    except ValueError: # let the user retry
+        print("That wasn't an integer!\n")
+        VehicleHistory(connection, curs)
+
+    # get vehicle history from database
+    query = "SELECT  h.serial_no, count(DISTINCT a1.transaction_id), \
+            avg(a1.price), count(DISTINCT t.ticket_no) \
+            FROM    vehicle h, auto_sale a1, ticket t \
+            WHERE   t.vehicle_id (+) = h.serial_no AND \
+                    a1.vehicle_id (+) = h.serial_no AND \
+                    h.serial_no = :vin \
+            GROUP by h.serial_no"
+
+    curs.execute(query, {'vin':VIN})
+    v_history = curs.fetchone()
+ 
+    if not v_history: 
+        # if vehicle serial number does not exist in the system
+        print("\nNo history for that vehicle available\n")
+
+    else: # print out vehicle history
+        print("\n Vehicle History \n")
+        print(" Serial Numer: ", v_history[0])
+        print(" Number of Sale Transactions: ", v_history[1])
+        print(" Average Price Sold For: $", v_history[2])
+        print(" Number of Violations Involved in: ", v_history[3])
+       
 
 def RecordSearch(connection, curs):
     """
