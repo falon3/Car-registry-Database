@@ -7,7 +7,7 @@ def OwnerErrCheck( owner_type, connection, curs):
     len_err = True
     while (format_err or db_err or len_err):
         SIN = input("Enter SIN of " + owner_type + "_owner: ")
-        len_err = CheckLen(SIN, 15)
+        len_err = CheckLen(SIN, 9)
         if len_err == True:
             continue;
         format_err = CheckIfInt(SIN)
@@ -18,6 +18,8 @@ def OwnerErrCheck( owner_type, connection, curs):
             continue;
     return SIN
 
+# error handling for primary_owner, secondary_owner
+# If Id doesnt exist, user has option to create a new person
 def CheckIfIdExists(some_id, connection, curs):
     some_id = int(some_id)
     command = "SELECT sin FROM people WHERE sin =: some_id"
@@ -152,13 +154,13 @@ Information needed from the user:
     - color (VARCHAR(10))
     - type_id (integer)
     - primary owner sin (CHAR(15))
-    - secondary owner sin (CHAR(15)) if relevant
+    - secondary owner sin (CHAR(15)) 
 
 This function obtains user information and checks the
 validity of the information sometimes by querying the
 database. If the user input is valid, adds the new vehicle
 information into the vehicle table.
-Then it adds the new primary information into owner table.
+Then it adds the new primary owner information into owner table.
 If a secondary owner is given it then adds the new secondary
 owner into the owner table.
 
