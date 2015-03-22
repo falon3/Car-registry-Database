@@ -1,52 +1,21 @@
+import datetime
+
 ''' 
 assumptions: SIN is not in database and format of SIN is valid
 '''
 
-# formatting date
-def FormatDate(year, month, day):
-    return day + "-" + month + "-" + year
-
-# error handling for day
-def DayErrCheck():
-    len_err = True
-    format_err = True
-    while (format_err or len_err):
-        day = input("Enter day of birth (eg. 25, 01): ")
-        len_err = CheckLen(day, 2)
-        if len_err == True:
-            continue;
-        format_err = CheckIfInt(day)
-        if format_err == True:
-            continue;
-    return day
-
-# error handling for year
-def YearErrCheck():
-    len_err = True
-    format_err = True
-    while (format_err or len_err):
-        year = input ("Enter year of birth (eg. 1991): ")
-        len_err = CheckLen(year, 4)
-        if len_err == True:
-            continue;
-        format_err = CheckIfInt(year)
-        if format_err == True:
-            continue;
-    return year
-
-# error handling for month
-def MonthErrCheck():
-    len_err = True
-    format_err = True
-    while (format_err or len_err):
-        month = input ("Enter month of birth (eg. FEB): ")
-        len_err = CheckLen(month, 3)
-        if len_err == True:
-            continue;
-        format_err = CheckIfAlpha(month)
-        if format_err == True:
-            continue;
-    return month.upper()
+def DateErrCheck(connection, curs):
+    date_err = True
+    while (date_err):
+        date = input("Enter birthdate, YY-MM-DD: ")
+        try:
+            # strptime throws an exception if userIn doesn't match the pattern
+            vdate = datetime.datetime.strptime(date, "%y-%m-%d")
+        except:
+            print("Invalid birthdate, try again!\n")
+        else:
+            date_err = False
+    return vdate
 
 def CheckIfInt(some_id):
     if some_id.isdigit():
@@ -60,7 +29,9 @@ def GenderErrCheck():
     while (format_err):
         gender = input( "Enter gender (m/f): ")
         if (gender == "f" or gender == "m"):
-            format_err = False   
+            format_err = False  
+        else:
+            print("Invalid input: must be (m/f)") 
     return gender
 
 def FloatErrCheck( a_str ):
@@ -110,12 +81,7 @@ def NewPerson( SIN, connection, curs):
     haircolor = StrErrCheck("haircolor", 10)
     addr = StrErrCheck( "address", 50)
     gender = GenderErrCheck()
-
-    year = YearErrCheck()
-    month = MonthErrCheck()
-    day = DarErrCheck()
-
-    birthday = FormatDate(year, month, day)
+    birthday = DateErrCheck( connection, curs)
 
     # Display new person information to user
     print("\nSummary of New Person")
