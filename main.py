@@ -14,7 +14,7 @@ from new_auto_transaction import AutoTransaction
 def Exit():
 
     connection.close()   
-    print("GoodBye!")
+    print("\nGoodBye!")
     exit()
          
 def Menu(connection, curs):
