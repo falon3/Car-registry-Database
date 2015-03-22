@@ -1,12 +1,12 @@
 from new_person import NewPerson
 
 # error handling for primary_owner, secondary_owner
-def OwnerErrCheck( connection, curs):
+def OwnerErrCheck( owner_type, connection, curs):
     format_err = True
     db_err = True
     len_err = True
     while (format_err or db_err or len_err):
-        SIN = input("Enter SIN of owner: ")
+        SIN = input("Enter SIN of " + owner_type + "_owner: ")
         len_err = CheckLen(SIN, 15)
         if len_err == True:
             continue;
@@ -141,7 +141,8 @@ def CheckIfInt(some_id):
         return True
 
 def NewVehicle(connection, curs):
-
+    
+    print("\nNew Vehicle Registration:\n")
     serial_no = SerialErrCheck(connection, curs)
     maker = StrErrCheck( "maker", 20 )
     model = StrErrCheck( "model", 20 )
@@ -149,14 +150,14 @@ def NewVehicle(connection, curs):
     color = StrErrCheck( "color", 10 )
     type_id = TypeErrCheck( connection, curs )
 
-    primary_owner = OwnerErrCheck(connection, curs)
+    primary_owner = OwnerErrCheck("primary", connection, curs)
     sec_owner_check = input ("Would you like to enter a secondary owner? (y/n): ")
     if (sec_owner_check == "y"):
         # must make sure that secondary_owner != primary owner
-        secondary_owner = OwnerErrCheck( connection, curs)
+        secondary_owner = OwnerErrCheck("secondary", connection, curs)
 
     # Display vehicle registration information to user
-    print("\nSummary of Vehicle Registration Information")
+    print("\nSummary of Vehicle Registration Information:")
     print("\nserial_no: ", serial_no, "\nmaker: ", maker, \
                 "\nmodel: ", model, "\nyear: ", year, \
                 "\ncolor: ", color, "\ntype_id: ", type_id, \
@@ -165,7 +166,7 @@ def NewVehicle(connection, curs):
         print("secondar owner: ", secondary_owner)
 
     # ask user to confirm registration information
-    check = input ("Is this information correct? (y/n): ")
+    check = input ("\nIs this information correct? (y/n): ")
     if (check == "n"):
         print("\nNew Vehicle was not added to database. Please try again.")
         NewVehicle( connection, curs)
