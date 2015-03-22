@@ -133,6 +133,7 @@ assumptions:
 '''
 def AutoTransaction(connection, curs):
 
+    print("\nAuto Sale Transaction:\n") 
     # generate transaction_id
     transaction_id = GenerateTransaction( connection, curs )
 
@@ -148,18 +149,18 @@ def AutoTransaction(connection, curs):
         owner_err = OwnerCheck(seller_id, vehicle_id, connection, curs)	
     
     # obtain and check s_date information
-    s_date = DateErrCheck()
+    s_date = DateErrCheck(connection, curs).date()
 
     price = PriceErrCheck()
 
     # Display auto sale transaction information to user
-    print("\nSummary of Auto Sale Transaction")
+    print("\nSummary of Auto Sale Transaction:")
     print("\ntransaction_id: ", transaction_id, "\nbuyer_id: ", buyer_id, \
                 "\nseller_id: ", seller_id, "\nvehicle_id: ", vehicle_id, \
                 "\ns_date: ", s_date, "\nprice: ", price)
 
     # ask user to confirm auto sale transaction information
-    check = input ("Is this information correct? (y/n): ")
+    check = input ("\nIs this information correct? (y/n): ")
     if (check == "n"):
         print("\nAuto Sale Transaction was not added to database. Please try again.")
         AutoTransaction( connection, curs)
