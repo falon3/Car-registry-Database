@@ -74,6 +74,9 @@ def CheckLen(a_str, expected_len):
         return True
 
 def NewPerson( SIN, connection, curs):
+
+    print("\nNew Person:\n")    
+
     name = StrErrCheck( "name ", 40)
     height = FloatErrCheck("height")
     weight = FloatErrCheck("weight")
@@ -81,17 +84,17 @@ def NewPerson( SIN, connection, curs):
     haircolor = StrErrCheck("haircolor", 10)
     addr = StrErrCheck( "address", 50)
     gender = GenderErrCheck()
-    birthday = DateErrCheck( connection, curs)
+    birthday = DateErrCheck( connection, curs).date()
 
     # Display new person information to user
-    print("\nSummary of New Person")
+    print("\nSummary of New Person: ")
     print("\nsin: ", SIN, "\nname: ", name, "\nheight: ", height, \
                 "\nweight: ", weight, "\neyecolor: ", eyecolor, \
                 "\nhaircolor: ", haircolor, "\naddress: ", addr, \
                 "\ngender: ", gender, "\nbirthday: ", birthday)
 
     # ask user to confirm auto sale transaction information
-    check = input ("Is this information correct? (y/n): ")
+    check = input ("\nIs this information correct? (y/n): ")
     if (check == "n"):
         print("\nNew Person was not added to database. Please try again.")
         NewPerson( SIN, connection, curs)
