@@ -139,8 +139,6 @@ def ViolationRecord(connection, curs):
 
         v_type = input("enter type of violation: ")
         v_type = v_type.strip()    # strip any extra whitespace characters
-        print(type(v_type))
-        print("|" + v_type + "|")
 
         query = "select * from ticket_type where TRIM((vtype)) = :vio"
         curs.execute(query, {'vio':v_type})
