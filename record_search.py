@@ -1,9 +1,16 @@
 import datetime
 
 def DriverRecord(connection, curs):
+    '''
+    Driver Record gives the name, licence_no, addr, birthday, class,
+    driving_condition, and expiring_date for a driver that is searched via 
+    a query into the database using what the user entered as the name or 
+    licence number.
 
-   # select name, licence_no(drive_licence), addr, birthday, class(drive_licence), driving_condition    
-	# (driving_condition and restriction), expiring_date(drive_licence) 
+    input: user requested for name(case insensitive), or licence number
+
+    output: a list of all of the results or a message saying the record doesn't exist
+    '''
 
     Name_DL = input("Enter driver name or licence number  ")
     # decide if user entered a name or license number
@@ -32,7 +39,7 @@ def DriverRecord(connection, curs):
                        r.licence_no (+)= dl.licence_no"
         curs.execute(query, {'DL':DL_num})
 
-    # get and format the info retrieved
+    # get and format the info retrieved if any
     Record = curs.fetchall()
     if Record == []:
         print("\n Record does not exist")
@@ -40,24 +47,63 @@ def DriverRecord(connection, curs):
 
     # print the results for all entires including duplicates
     for row in Record:
-        name = Record[0][0]
-        licence_no = Record[0][1]
-        address = Record[0][2]
-        birthday = Record[0][3].date()
-        driving_class = Record[0][4]
-        expiring_date = Record[0][5].date()
-        driving_condition = Record[0][6]
-        print("\n Name: ", name)
-        print(" Address: ", address)
-        print(" Date of Birth: ", birthday)
-        print(" Driving Class: ", driving_class)
-        print(" Expiration date: ", expiring_date)
-        print(" Driving condition: ",driving_condition)
+        print("\n Name: ", row[0])
+        print(" Licence no.: ", row[1])
+        print(" Address: ", row[2])
+        print(" Date of Birth: ", row[3].date())
+        print(" Driving Class: ", row[4])
+        print(" Expiration date: ", row[5].date())
+        print(" Driving condition: ", row[6])
         
         
-
 def DriverAbstract(connection, curs):
-    pass
+    '''
+    Driver Abstract lists all of the violations for a driver that 
+    is searched via a query into the database using what the user 
+    entered as the driver's SIN or licence number.
+
+    input: user requested for SIN, or licence number
+
+    output: a list of all of the violations or a message saying there 
+            is no violation history
+    '''
+
+    ID_num = input("Enter driver SIN or licence number  ")
+    # decide if user entered a name or license number
+    ID_num = int(ID_num)
+
+    # see if if was a SIN that exists
+    test = "select * from people where sin = :SIN"
+    curs.execute(test, {'SIN':ID_num})
+    try_SIN = curs.fetchone()
+
+    if try_SIN: # if SIN then get history from sin
+        query = "select * from ticket where violator_no = :sin"
+        curs.execute(query, {'sin':ID_num})
+        history = curs.fetchall()
+      
+    else:  # it was a licence number entered get history this way
+        do = " select * from ticket \
+               where violator_no = (select sin from drive_licence \
+                                    where licence_no = :licence )"
+        curs.execute(do, {'licence':ID_num})
+        history = curs.fetchall()
+    
+    if not history: 
+        # if person does not exist in the system or if they had 
+        # no violations this message is printed
+        print("\nNo violation history\n")
+
+    else: # print out each violation ever recieved by driver
+        for row in history:
+            print("\n Ticket Numer: ", row[0])
+            print(" Violator SIN: ", row[1])
+            print(" Vehicle Serial_no: ", row[2])
+            print(" Officer ID: ", row[3])
+            print(" Violation Type: ", row[4])
+            print(" Date of Violation: ", row[5].date())
+            print(" Violation Location: ", row[6], "\n")
+ 
 
 def VehicleHistory(connection, curs):
     pass
@@ -99,6 +145,11 @@ def RecordSearch(connection, curs):
 
     elif select == '4':
         Menu(connection, curs)
+
+    else:
+        print("\nthat wasn't a valid option!\n")
+        RecordSearch(connection, curs)
     
-    userIn = input("\nPress enter to return to Record Search Engine\n  ")
+    # display search results until user presses enter again
+    userIn = input("\nPress enter to return to Record Search Engine  ")
     RecordSearch(connection, curs)
