@@ -53,47 +53,51 @@ def Menu(connection, curs):
 
 if __name__ == "__main__":
 
-    ccid = input('Enter your CCID: ')
-    password = input('Password: ')
-   
-    login = ccid + '/' + password + '@gwynne.cs.ualberta.ca:1521/CRS'
-
-    try:
-        connection = cx_Oracle.connect(login)
-        # this makes everything auto commit so no worries of exiting before commiting new info
-        connection.autocommit = 1
-        curs = connection.cursor()
+    login_err = True
+    while (login_err):
+        try:
+            ccid = input('\nEnter your CCID: ')
+            password = input('Password: ')
+            login = ccid + '/' + password + '@gwynne.cs.ualberta.ca:1521/CRS'
+            connection = cx_Oracle.connect(login)
+            # this makes everything auto commit so no worries of exiting before commiting new info
+            connection.autocommit = 1
+            curs = connection.cursor()
         
-        '''
-        # drop table
-        dropTable = ("drop table TOFFEES")
-         curs.execute(dropTable)
+            '''
+            # drop table
+            dropTable = ("drop table TOFFEES")
+            curs.execute(dropTable)
 
-        # make table
-        createStr = ("create table TOFFEES "
-	"(T_NAME VARCHAR(32), SUP_ID INTEGER, PRICE FLOAT, SALES INTEGER, TOTAL INTEGER)")
-        curs.execute(createStr)
+            # make table
+            createStr = ("create table TOFFEES "
+	        "(T_NAME VARCHAR(32), SUP_ID INTEGER, PRICE FLOAT, SALES INTEGER, TOTAL INTEGER)")
+            curs.execute(createStr)
         
-        data = [('Quadbury', 101, 7.99, 0, 0),
+            data = [('Quadbury', 101, 7.99, 0, 0),
                 ('Almond roca', 102, 8.99, 0, 0),
                 ('Golden Key', 103, 3.99, 0, 0)]
 
-        cursInsert = connection.cursor()
-        cursInsert.bindarraysize = 3
-        cursInsert.setinputsizes(32, int, float, int, int)
-        cursInsert.executemany("INSERT INTO TOFFEES(T_NAME, SUP_ID, PRICE, SALES, TOTAL) " 
+            cursInsert = connection.cursor()
+            cursInsert.bindarraysize = 3
+            cursInsert.setinputsizes(32, int, float, int, int)
+            cursInsert.executemany("INSERT INTO TOFFEES(T_NAME, SUP_ID, PRICE, SALES, TOTAL) " 
                                "VALUES (:1, :2, :3, :4, :5)", data)
-        connection.commit()
+            connection.commit()
               
-        curs.execute("SELECT * from TOFFEES")
-        rows = curs.fetchall()
-        for row in rows:
-        print(row)
+            curs.execute("SELECT * from TOFFEES")
+            rows = curs.fetchall()
+            for row in rows:
+            print(row)
                   
-        '''
-    except cx_Oracle.DatabaseError as exc:
-        error, = exc.args
-        print( sys.stderr, "Oracle code:", error.code)
-        print( sys.stderr, "Oracle message:", error.message)
-
+            '''
+        except cx_Oracle.DatabaseError as exc:
+            error, = exc.args
+            # I dont think we need a very detailed error message here? 
+            #print( sys.stderr, "Oracle code:", error.code)
+            #print( sys.stderr, "Oracle message:", error.message)
+            print("Error:", error.message)
+        
+        else:
+            login_err = False
     Menu(connection, curs)
