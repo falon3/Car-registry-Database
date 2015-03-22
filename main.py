@@ -4,6 +4,7 @@ from new_vehicle import NewVehicle
 from violation_record import ViolationRecord
 from new_driver import NewDriver
 from record_search import RecordSearch
+from new_auto_transaction import AutoTransaction
 # 1. from filename (without .py) import functionname
 # OR 2. import filename
 # in the first case you call with functionname
