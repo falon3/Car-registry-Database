@@ -1,3 +1,39 @@
+from new_person import NewPerson
+
+# error handling for primary_owner, secondary_owner
+def OwnerErrCheck( connection, curs):
+    format_err = True
+    db_err = True
+    len_err = True
+    while (format_err or db_err or len_err):
+        SIN = input("Enter SIN of owner: ")
+        len_err = CheckLen(SIN, 15)
+        if len_err == True:
+            continue;
+        format_err = CheckIfInt(SIN)
+        if format_err == True:
+            continue;
+        db_err = CheckIfIdExists(SIN, connection, curs)
+        if db_err == True:
+            continue;
+    return SIN
+
+def CheckIfIdExists(some_id, connection, curs):
+    some_id = int(some_id)
+    command = "SELECT sin FROM people WHERE sin =: some_id"
+    curs.execute(command,{"some_id":some_id})
+    if ( None == curs.fetchone()):
+        print("Invalid input: SIN does not exist.")
+        # ask user if they would like to enter a new person
+        check = input("Would you like to add this person into the database? (y/n): ")
+        if (check == "y"):
+            NewPerson(some_id, connection, curs)
+            return False
+        else: # if check == "n"
+            return True
+    else:
+        return False
+
 # error handling for type_id
 def TypeErrCheck( connection, curs):
     format_err = True
@@ -72,7 +108,7 @@ def SerialErrCheck( connection, curs):
         format_err = CheckIfInt(serial_no)
         if format_err == True:
             continue;
-        db_err = CheckIfExists(serial_no, connection, curs)
+        db_err = CheckIfVehicleExists(serial_no, connection, curs)
         if db_err == True:
             continue;
     return serial_no
@@ -86,17 +122,17 @@ def CheckLen(a_str, expected_len):
         return True
 
 # error handling for serial_no
-def CheckIfExists(some_id, connection, curs):
+def CheckIfVehicleExists(some_id, connection, curs):
     some_id = int(some_id)
-    command = "SELECT sin FROM people WHERE sin =: some_id"
+    command = "SELECT serial_no FROM vehicle WHERE serial_no =: some_id"
     curs.execute(command,{"some_id":some_id})
     if ( None != curs.fetchone()):
-        print("Invalid input: vehicle already exists.")
+        print("Invalid input: vehicle already exists in database.")
         return True
     else:
         return False
 
-# error handling for serial_no, year
+# error handling for serial_no, year, primary_owner, secondary_owner
 def CheckIfInt(some_id):
     if some_id.isdigit():
         return False
@@ -113,14 +149,45 @@ def NewVehicle(connection, curs):
     color = StrErrCheck( "color", 10 )
     type_id = TypeErrCheck( connection, curs )
 
-    # Display new vehicle information to user
-    print("\nSummary of Vehicle")
+    primary_owner = OwnerErrCheck(connection, curs)
+    sec_owner_check = input ("Would you like to enter a secondary owner? (y/n): ")
+    if (sec_owner_check == "y"):
+        # must make sure that secondary_owner != primary owner
+        secondary_owner = OwnerErrCheck( connection, curs)
+
+    # Display vehicle registration information to user
+    print("\nSummary of Vehicle Registration Information")
     print("\nserial_no: ", serial_no, "\nmaker: ", maker, \
                 "\nmodel: ", model, "\nyear: ", year, \
-                "\ncolor: ", color, "\ntype_id: ", type_id)
+                "\ncolor: ", color, "\ntype_id: ", type_id, \
+                "\nprimary owner: ",  primary_owner)
+    if (sec_owner_check == "y"):
+        print("secondar owner: ", secondary_owner)
 
-    # ask user to confirm auto sale transaction information
+    # ask user to confirm registration information
     check = input ("Is this information correct? (y/n): ")
     if (check == "n"):
         print("\nNew Vehicle was not added to database. Please try again.")
         NewVehicle( connection, curs)
+
+    # Insert serial_no into vehicle table
+    data = [(serial_no, maker, model, year, color, type_id)]
+    curs.bindarraysize = 1
+    curs.setinputsizes(15, 20, 20, int, 10, int)
+    curs.executemany( "INSERT into vehicle VALUES (:1, :2, :3, :4, :5, :6)", data)
+
+    # Insert primary_owner into owner table
+    data = [(primary_owner, serial_no, "y")]
+    curs.bindarraysize = 1
+    curs.setinputsizes(15,15,1)
+    curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)   
+
+    # insert secondary_owner into owner table
+    if (sec_owner_check == "y"):
+        data = [(secondary_owner, serial_no, "n")]
+        curs.bindarraysize = 1
+        curs.setinputsizes(15,15,1)
+        curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)
+ 
+    print("\nVehicle was succesfully registered into the database.")
+
