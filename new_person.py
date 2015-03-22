@@ -1,15 +1,11 @@
 import datetime
 
-''' 
-assumptions: SIN is not in database and format of SIN is valid
-'''
-
+#error handling for birthday
 def DateErrCheck(connection, curs):
     date_err = True
     while (date_err):
         date = input("Enter birthdate, YY-MM-DD: ")
         try:
-            # strptime throws an exception if userIn doesn't match the pattern
             vdate = datetime.datetime.strptime(date, "%y-%m-%d")
         except:
             print("Invalid birthdate, try again!\n")
@@ -17,13 +13,7 @@ def DateErrCheck(connection, curs):
             date_err = False
     return vdate
 
-def CheckIfInt(some_id):
-    if some_id.isdigit():
-        return False
-    else:
-        print("Invalid input: must be integer")
-        return True
-
+# error handling for gender
 def GenderErrCheck():
     format_err = True
     while (format_err):
@@ -34,10 +24,11 @@ def GenderErrCheck():
             print("Invalid input: must be (m/f)") 
     return gender
 
+# error handling for height, weight
 def FloatErrCheck( a_str ):
     format_err = True
     while (format_err):
-        measurement = input("Enter " + a_str + " of form ___.__: ")
+        measurement = input("Enter " + a_str + " (between 0.00 and 999.99): ")
         try:
             float(measurement)
         except:
@@ -46,6 +37,7 @@ def FloatErrCheck( a_str ):
             format_err = False
     return float(measurement)
 
+# error handling for name, eyecolor, haircolor, addr, gender
 def StrErrCheck( a_str, max_len):
     len_err = True
     format_err = True
@@ -59,13 +51,14 @@ def StrErrCheck( a_str, max_len):
             continue;
     return descriptor
 
-# error handling StrErrCheck
+# error handling for StrErrCheck
 def CheckIfAlpha(a_str):
     if a_str.isalpha():
         return False
     else:
         return True
 
+# error handling for StrErrCheck
 def CheckLen(a_str, expected_len):
     if len(a_str) <= expected_len:
         return False
@@ -73,6 +66,30 @@ def CheckLen(a_str, expected_len):
         print("Invalid input: Must be <=", expected_len, "digits long")
         return True
 
+'''
+This component is used to create a new person in the database.
+
+Information needed from the user:
+    - person's name (CHAR(40))
+    - person's height (number(5,2))
+    - person's weight (number(5,2))
+    - person's eyecolor (VARCHAR(10))
+    - person's haircolor (VARCHAR(10))
+    - person's addresss (VARCHAR(50))
+    - person's gender (CHAR(1))
+    - person's birthday (DATE)
+
+This function obtains user information and checks the
+validity of the information.
+If the user input is valid, it adds the new person into
+the people table in the database
+
+parameters: sin, connection, curs
+return values: none
+assumptions:
+    - sin is valid (9 digits long) and does not already
+      exist in the database
+'''
 def NewPerson( SIN, connection, curs):
 
     print("\nNew Person:\n")    

@@ -24,9 +24,9 @@ def CheckIfIdExists(some_id, connection, curs):
     curs.execute(command,{"some_id":some_id})
     if ( None == curs.fetchone()):
         print("Invalid input: SIN does not exist.")
-        # ask user if they would like to enter a new person
         check = input("Would you like to add this person into the database? (y/n): ")
         if (check == "y"):
+            # Add a new person into the database
             NewPerson(some_id, connection, curs)
             return False
         else: # if check == "n"
@@ -139,6 +139,38 @@ def CheckIfInt(some_id):
     else:
         print("Invalid input: must be integer")
         return True
+
+'''
+This component is used by a registering officer to create
+an new vehicle record and new ownership record.
+
+Information needed from the user:
+    - serial number of vehicle (int CHAR(15))
+    - maker (VARCHAR(20))
+    - model (VARCHAR(20))
+    - year (Number(4,0))
+    - color (VARCHAR(10))
+    - type_id (integer)
+    - primary owner sin (CHAR(15))
+    - secondary owner sin (CHAR(15)) if relevant
+
+This function obtains user information and checks the
+validity of the information sometimes by querying the
+database. If the user input is valid, adds the new vehicle
+information into the vehicle table.
+Then it adds the new primary information into owner table.
+If a secondary owner is given it then adds the new secondary
+owner into the owner table.
+
+parameters: connection, curs
+return values: none
+assumptions:
+    - it is only possible to have one secondary owner
+    - all vehicles must have one primary owner
+    - user enters sins that are 9 digits long
+    - there are some valid type_ids already entered in the 
+      vehicle_type table
+'''
 
 def NewVehicle(connection, curs):
     
