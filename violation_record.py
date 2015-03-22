@@ -148,10 +148,8 @@ def ViolationRecord(connection, curs):
             print("invalid violation type!\n")
     
 
-
-
     # get date of violation from user
-    vdate = GetValidDate(connection,curs)
+    vdate = GetValidDate(connection,curs).date()
          
     # get place violation happened from user
     location = input("location of violation: ")
