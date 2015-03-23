@@ -32,7 +32,7 @@ def FloatErrCheck( a_str ):
         try:
             float(measurement)
         except:
-            print("Invalid input: must be float of form ___.__: ")
+            print("Invalid input: must be number between 0.00 and 999.99: ")
         else:
             format_err = False
     return float(measurement)
@@ -40,31 +40,14 @@ def FloatErrCheck( a_str ):
 # error handling for name, eyecolor, haircolor, addr, gender
 def StrErrCheck( a_str, max_len):
     len_err = True
-    format_err = True
-    while (format_err or len_err):
+    while (len_err):
         descriptor = input ("Enter person's " + a_str + ": ")
-        len_err = CheckLen(descriptor, max_len )
-        if len_err == True:
-            continue;
-        format_err = CheckIfAlpha(descriptor)
-        if format_err == True:
-            continue;
+        if (len(a_str) <= max_len):
+            len_err = False
+        else:
+            print("Invalid input: Must be <=", + max_len, + "digits long")
+            len_err = True
     return descriptor
-
-# error handling for StrErrCheck
-def CheckIfAlpha(a_str):
-    if a_str.isalpha():
-        return False
-    else:
-        return True
-
-# error handling for StrErrCheck
-def CheckLen(a_str, expected_len):
-    if len(a_str) <= expected_len:
-        return False
-    else:
-        print("Invalid input: Must be <=", expected_len, "digits long")
-        return True
 
 '''
 This component is used to create a new person in the database.
@@ -87,14 +70,16 @@ the people table in the database
 parameters: sin, connection, curs
 return values: none
 assumptions:
+    - user will enter valid alpha strings (spaces permitted)
     - sin is valid (9 digits long) and does not already
       exist in the database
 '''
+
 def NewPerson( SIN, connection, curs):
 
     print("\nNew Person:\n")    
 
-    name = StrErrCheck( "name ", 40)
+    name = StrErrCheck( "name", 40)
     height = FloatErrCheck("height")
     weight = FloatErrCheck("weight")
     eyecolor = StrErrCheck("eyecolor", 10) 
