@@ -330,17 +330,17 @@ Parameters: type (type of date requested)
 Return value: date in format 
 """
 def requestDate(type):
-    query = "Please enter the driver's %s (DD-MMM-YY): " % type
+    query = "Please enter the driver's %s (YY-MM-DD): " % type
     done = 0
     while not done:
-        date = input(query)
+        vdate = input(query)
         try:
-            vdate = datetime.datetime.strptime(date, "%d-%b-%y")
+            vdate = datetime.datetime.strptime(vdate, "%y-%m-%d")
         except:
             print("Incorrect date format.")
         else:
             done = 1
-    return date.upper()
+    return vdate.date()
     
 """
 requestGender
