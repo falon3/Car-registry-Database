@@ -162,12 +162,50 @@ createRestrictions
 Parameters: licence_no, connection, curs
 Returns: 1 if successful, 0 if not.
 
-Assumes: 'q' is not a restriction.
+Assumes: 'q' is not a restriction. No restrictions currently exists for the driver licence.
 """
 
-def createRestrictions:
+def createRestrictions(licence_no, connection, curs):
+    done = 0
+    added = []
+    fields = ('licence_no', 'r_id')
+    indict = {}
+    indict['licence_no'] = licence_no
+    while not done:
+        r_no = input("Please enter the driving condition ID number ('q' when done): ")
+        if not r_no.isdigit():
+            if r_no == 'q':
+                print("Finished creating record.\n\n")
+                done = 1
+            else:
+                print("Invalid ID number: must be a digit.")
+        elif r_no in added:
+            print("You have already added that restriction.")
+        else:
+            if verifyRestrictions(r_no, connection, curs):
+                added += [r_no]
+                indict['r_id'] = r_no
+                stmt = "INSERT INTO restriction " + str(fields).replace("'","") \
+            + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(", ",", :")
+                curs.execute(stmt,indict)
+                print("Driving condition added.")
+            else:
+                print("Invalid driving condition ID number.")
     return 1
 
+"""
+verifyRestrictions
+Parameters: r_no, connection, curs
+Returns: 1 if verified, 0 if not
+"""
+def verifyRestrictions(r_no, connection, curs):
+    query = "SELECT c_id FROM driving_condition WHERE c_id = :restrict"
+    qdict = {'restrict':r_no}
+    curs.execute(query,qdict)
+    row = curs.fetchone()
+    if row == None:
+        return 0
+    return 1    
 """
 newRecUI
 
@@ -378,8 +416,8 @@ Assumptions: sin is in valid format; is contained in first 9 characters of
 Checks the given table to see if the SIN already exists.
 """
 def recordExists(sin, table, connection, curs):
-    # Notes: since sin is char 16, we need to pad out the remaining values
-    sin = sin[:9] + '      '
+    # Notes: since sin is char 15, we need to pad out the remaining values
+    sin = sin + (15-len(sin)) * ' '
     query = "SELECT SIN FROM %s WHERE SIN = :sinno" % table
     qdict = {'sinno':sin}
     curs.execute(query,qdict)
