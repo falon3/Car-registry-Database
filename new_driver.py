@@ -48,14 +48,21 @@ def NewDriver(connection, curs):
         print("Returning to main menu...")
     elif recordExists(sin, 'people', connection, curs):
         print("People record found; no driving license found")
+        newDriverUI(sin,connection,curs)
     else:
-        newPeopleUI(sin,connection,curs)
-        
+        rval = newPeopleUI(sin,connection,curs)
+        if not rval:
+            print("No records were created. Returning to main menu... \n\n")
+            return
+        newDriverUI(sin,connection,curs)
+    
+            
 """
 newPeopleUI
 
 Parameters: sin, connection, curs
-Return value: none
+Return value: 1 if new record successfully created, 0 else.
+Assummptions: SIN entered at this point is correct.
 
 Displays prompt and instructions for creating a new people record.
 """
@@ -78,8 +85,8 @@ def newPeopleUI(sin,connection,curs):
     indict['name'] = requestName()
     indict['height'] = requestBodyStats('height')
     indict['weight'] = requestBodyStats('weight')
-    indict['eyecolor'] = requestColor('eye')
-    indict['haircolor'] = requestColor('hair')
+    indict['eyecolor'] = requestCharT('eye color')
+    indict['haircolor'] = requestCharT('hair color')
     indict['addr'] = requestAddr()
     indict['gender'] = requestGender()
     indict['birthday'] = requestDate('birthday')
@@ -90,15 +97,76 @@ def newPeopleUI(sin,connection,curs):
         print(descript[x] + ':',indict[x])
     if verifyYN():
         stmt = "INSERT INTO PEOPLE " + str(fields).replace("'","") \
-        + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(" "," :")
+        + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(", ",", :")
         curs.execute(stmt,indict)
-        print("\nNew record has been created in people.")
+        print("\nNew record has been created in people.\n\n")
+        return 1
     else:
-        print("Returning to main menu...\n\n")
-        # To do: maybe have a way for them to return to just creating a new person
-        # but with option for editing the SIN.
-        # newPeopleUI(sin,connection,curs)
+        return newPeopleUI(sin,connection,curs)
+    # we should never reach this point
+    return 0
 
+"""
+newDriverUI
+
+Parameters: sin, connection, curs
+Return value: 1 if new record successfully created, 0 else.
+Assummptions: SIN entered at this point is correct. People record exists. 
+              Driving licence number is determined outside of program.
+
+Displays prompt and instructions for creating a new driving licence record.
+"""
+def newDriverUI(sin,connection,curs):
+    print("Now creating new driving licence record.")
+    fields = ('licence_no','sin','class','photo','issuing_date','expiring_date')
+    descript = {}
+    descript['licence_no'] = "Licence number"
+    descript['sin'] = "SIN"
+    descript['class'] = "Class"
+    descript['photo'] = "Filename of photo"
+    descript['issuing_date'] = "Date of issue"
+    descript['expiring_date'] = "Date of expiry"
+    
+    indict = {}
+    indict['licence_no'] = requestLicence(connection, curs)
+    indict['sin'] = sin
+    indict['class'] = requestCharT('licence class')
+    p = requestPhoto()
+    indict['photo'] = p[0]
+    indict['issuing_date'] = requestDate('licence date of issue')
+    indict['expiring_date'] = requestDate('licence date of expiry')
+
+    print()
+    print("You have entered the following information:")
+    for x in fields:
+        if not ( x == 'photo'):
+            print(descript[x] + ':',indict[x])
+        else:
+            print(descript[x] + ':', p[1])
+    if verifyYN():
+        curs.setinputsizes(photo=cx_Oracle.BLOB)
+        stmt = "INSERT INTO DRIVE_LICENCE " + str(fields).replace("'","") \
+        + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(", ",", :")
+        curs.execute(stmt,indict)
+        print("\nNew record has been created in drive_licence.\n\n")
+        errval = createRestrictions(indict['licence_no'], connection, curs)
+        return errval
+    else:
+        newPeopleUI(sin,connection,curs)
+    # we should never reach this point
+    return 0
+
+"""
+createRestrictions
+
+Parameters: licence_no, connection, curs
+Returns: 1 if successful, 0 if not.
+
+Assumes: 'q' is not a restriction.
+"""
+
+def createRestrictions:
+    return 1
 
 """
 newRecUI
@@ -143,7 +211,27 @@ def verifyYN():
         return 1
     if ans == 'n':
         return 0
-    
+"""
+requestPhoto
+
+Parameters: none
+Return value: the read photo file in [1], the filename in [2]
+"""
+
+def requestPhoto():
+    errinputs="You entered an invalid file name. Please try again."
+    done = 0
+    while not done:
+        photoname = input("Please enter the filename of the driver's photo: ")
+        try:
+            photofile = open(photoname, 'rb')
+        except:
+            print(errinputs)
+        else:
+            done = 1
+    photo = photofile.read()
+    return photo,photoname
+
 """
 requestSIN
 
@@ -164,6 +252,39 @@ Please enter the new driver's SIN number again: """
     else:
         return requestSIN()
 
+"""
+requestLicence
+
+Parameters: connection, curs
+Return value: String (not to exceed 15 chars) containing the licence number
+
+Potential error cases:
+1. licence number already exists (and is tied to another SIN number)
+We don't have to cover the case of both sin and licence existing because we 
+checked that earlier.
+"""
+        
+def requestLicence(connection, curs):
+    errinputs = """\
+You entered an invalid licence number. Licence numbers must be 9 digits long 
+and devoid of external formatting, i.e. 123456789.
+Please enter the new driver's SIN number again: """
+    existserr = """\
+The licence number you have entered already exists. Licence numbers
+must be 9 digits long and devoid of external formatting, i.e. 123456789."""
+    licence = input("Please enter the new driver's licence number (9 digits): ")
+    while not (licence.isdigit()):
+        licence = input(errinputs)
+    print("You have entered:", licence)
+    if verifyYN():
+        if licenceExists(licence, 'drive_licence', connection, curs):
+            print(existserr)
+            return requestLicence(connection,curs)
+        return licence
+    else:
+        return requestLicence(connection,curs)    
+
+        
 """
 requestDate
 
@@ -222,15 +343,15 @@ def requestBodyStats(type):
     return float('%5.2f'%float(inpt))
     
 """
-requestColor
+requestCharT
 
-Parameters: type (eye or hair)
+Parameters: type (eye color or hair color or class)
 Return value: String containing color, max length 10 digits
 """    
-def requestColor(type):
-    query = "Please enter the driver's %s color (max 10 characters): " % type
-    color = input(query)
-    return color[:10]
+def requestCharT(type):
+    query = "Please enter the driver's %s (max 10 characters): " % type
+    val = input(query)
+    return val[:10]
     
 """
 requestName
@@ -243,6 +364,7 @@ def requestName():
     name = input(query)
     return name[:40]    
 
+# At some point of time, can maybe combine recordExists and licenceExists into the same function
     
 """
 recordExists
@@ -266,4 +388,25 @@ def recordExists(sin, table, connection, curs):
         return 0
     return 1
 
+"""
+licenceExists
+
+Parameters: licence (string), table (string) connection, curs (for querying db)
+Return value: 1 if licence exists, 0 if not.
+Assumptions: licence is in valid format; is contained in first 9 characters of
+             the string passed in.
+             table is a valid table_name
+
+Checks the given table to see if the licence number already exists.
+"""
+def licenceExists(licence, table, connection, curs):
+    # Notes: since sin is char 16, we need to pad out the remaining values
+    licence = licence[:9] + '      '
+    query = "SELECT LICENCE_NO FROM %s WHERE LICENCE_NO = :lno" % table
+    qdict = {'lno':licence}
+    curs.execute(query,qdict)
+    row = curs.fetchone()
+    if row == None:
+        return 0
+    return 1
     
