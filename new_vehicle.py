@@ -7,14 +7,26 @@ def OwnerErrCheck( owner_type, connection, curs):
     len_err = True
     while (format_err or db_err or len_err):
         SIN = input("Enter SIN of " + owner_type + "_owner: ")
-        len_err = CheckLen(SIN, 9)
+        # check len
+        len_err = CheckLen(SIN, 15)
         if len_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"     
             continue;
+        # check format
         format_err = CheckIfInt(SIN)
         if format_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit != "N"):
+                return "EXIT"
             continue;
+        # check db
         db_err = CheckIfIdExists(SIN, connection, curs)
         if db_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
             continue;
     return SIN
 
@@ -42,11 +54,19 @@ def TypeErrCheck( connection, curs):
     db_err = True
     while (format_err or db_err):
         type_id = input("Enter type_id: ")
+        # check format
         format_err = CheckIfInt(type_id)
         if format_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
             continue;
+        # check db
         db_err = CheckIfTypeExists(type_id, connection, curs)
         if db_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
             continue;
     return type_id
 
@@ -67,35 +87,33 @@ def YearErrCheck():
     format_err = True
     while (format_err or len_err):
         year = input("Enter vehicle year (Eg. 1991): ")
+        # check len
         len_err = CheckLen(year,4)
         if len_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
             continue;
+        # check format
         format_err = CheckIfInt(year)
         if format_err == True:
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
             continue;
     return int(year)
 
 # error handling for maker, model, color
 def StrErrCheck( a_str, max_len):
     len_err = True
-    format_err = True
-    while (format_err or len_err):
+    while ( len_err):
         descriptor = input ("Enter vehicle " + a_str + ": ")
-        len_err = CheckLen(descriptor, max_len )
-        if len_err == True:
-            continue;
-        format_err = CheckIfAlpha(descriptor)
-        if format_err == True:
-            continue;
+        if (len(a_str) <= max_len):
+            len_err = False
+        else:
+            print("Invalid input: Must be <=", + max_len, + "digits long")
+            len_err = True
     return descriptor
-
-# error handling StrErrCheck
-def CheckIfAlpha(a_str):
-    if a_str.isalpha():
-        return False
-    else:
-        print("Invalid input: must enter string")
-        return True
 
 # error handling for serial_no
 def SerialErrCheck( connection, curs):
@@ -104,18 +122,33 @@ def SerialErrCheck( connection, curs):
     len_err = True
     while (format_err or db_err or len_err):
         serial_no = input("Enter serial_no: ")
+        # check len
         len_err = CheckLen(serial_no, 15)
         if len_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
+        # check format
         format_err = CheckIfInt(serial_no)
         if format_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
+        # check db
         db_err = CheckIfVehicleExists(serial_no, connection, curs)
         if db_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
     return serial_no
 
-# error handling for serial_no, maker, model, year, color
+# error handling for serial_no, year
 def CheckLen(a_str, expected_len):
     if len(a_str) <= expected_len:
         return False
@@ -177,52 +210,83 @@ assumptions:
 def NewVehicle(connection, curs):
     
     print("\nNew Vehicle Registration:\n")
-    serial_no = SerialErrCheck(connection, curs)
-    maker = StrErrCheck( "maker", 20 )
-    model = StrErrCheck( "model", 20 )
-    year = YearErrCheck()
-    color = StrErrCheck( "color", 10 )
-    type_id = TypeErrCheck( connection, curs )
+    exit = False   
 
-    primary_owner = OwnerErrCheck("primary", connection, curs)
-    sec_owner_check = input ("Would you like to enter a secondary owner? (y/n): ")
-    if (sec_owner_check == "y"):
-        # must make sure that secondary_owner != primary owner
-        secondary_owner = OwnerErrCheck("secondary", connection, curs)
+    while (exit == False): 
+        
+        serial_no = SerialErrCheck(connection, curs)
+        if (serial_no == "EXIT"):
+            break;        
 
-    # Display vehicle registration information to user
-    print("\nSummary of Vehicle Registration Information:")
-    print("\nserial_no: ", serial_no, "\nmaker: ", maker, \
+        maker = StrErrCheck( "maker", 20 )
+        if (maker == "EXIT"):
+            break;
+
+        model = StrErrCheck( "model", 20 )
+        if (model == "EXIT"):
+            break;        
+
+        year = YearErrCheck()
+        if (year == "EXIT"):
+            break;    
+
+        color = StrErrCheck( "color", 10 )
+        if (color == "EXIT"):
+            break;        
+
+        type_id = TypeErrCheck( connection, curs )
+        if (type_id == "EXIT"):
+            break;
+
+        primary_owner = OwnerErrCheck("primary", connection, curs)
+        if (primary_owner == "EXIT"):
+            break;        
+
+        sec_owner_check = input ("Would you like to enter a secondary owner? (y/n): ")
+        if (sec_owner_check == "y"):
+            # must make sure that secondary_owner != primary owner
+            secondary_owner = OwnerErrCheck("secondary", connection, curs)
+            if (secondary_owner == "EXIT"):
+                break;            
+
+        # Display vehicle registration information to user
+        print("\nSummary of Vehicle Registration Information:")
+        print("\nserial_no: ", serial_no, "\nmaker: ", maker, \
                 "\nmodel: ", model, "\nyear: ", year, \
                 "\ncolor: ", color, "\ntype_id: ", type_id, \
                 "\nprimary owner: ",  primary_owner)
-    if (sec_owner_check == "y"):
-        print("secondar owner: ", secondary_owner)
+        if (sec_owner_check == "y"):
+            print("secondar owner: ", secondary_owner)
+        
 
-    # ask user to confirm registration information
-    check = input ("\nIs this information correct? (y/n): ")
-    if (check == "n"):
-        print("\nNew Vehicle was not added to database. Please try again.")
-        NewVehicle( connection, curs)
+        # ask user to confirm registration information
+        check = input ("\nIs this information correct? (y/n): ")
+        if (check == "n"):
+            print("\nNew Vehicle was not added to database. Please try again.")
+            break;
 
-    # Insert serial_no into vehicle table
-    data = [(serial_no, maker, model, year, color, type_id)]
-    curs.bindarraysize = 1
-    curs.setinputsizes(15, 20, 20, int, 10, int)
-    curs.executemany( "INSERT into vehicle VALUES (:1, :2, :3, :4, :5, :6)", data)
+        # Insert serial_no into vehicle table
+        data = [(serial_no, maker, model, year, color, type_id)]
+        curs.bindarraysize = 1
+        curs.setinputsizes(15, 20, 20, int, 10, int)
+        curs.executemany( "INSERT into vehicle VALUES (:1, :2, :3, :4, :5, :6)", data)
 
-    # Insert primary_owner into owner table
-    data = [(primary_owner, serial_no, "y")]
-    curs.bindarraysize = 1
-    curs.setinputsizes(15,15,1)
-    curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)   
-
-    # insert secondary_owner into owner table
-    if (sec_owner_check == "y"):
-        data = [(secondary_owner, serial_no, "n")]
+        # Insert primary_owner into owner table
+        data = [(primary_owner, serial_no, "y")]
         curs.bindarraysize = 1
         curs.setinputsizes(15,15,1)
-        curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)
- 
-    print("\nVehicle was succesfully registered into the database.")
+        curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)   
 
+        # insert secondary_owner into owner table
+        if (sec_owner_check == "y"):
+            data = [(secondary_owner, serial_no, "n")]
+            curs.bindarraysize = 1
+            curs.setinputsizes(15,15,1)
+            curs.executemany("INSERT into owner VALUES (:1, :2, :3)", data)
+        
+        print("\nVehicle was succesfully registered into the database.")
+        
+        # exit loop successfully
+        exit = True
+
+    print("\nReturning to main menu\n")
