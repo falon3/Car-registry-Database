@@ -68,22 +68,22 @@ def DriverAbstract(connection, curs):
             is no violation history
     '''
 
-    ID_num = input("Enter driver SIN or licence number  ")
-    # decide if user entered a name or license number
-    try:
-        ID_num = int(ID_num)
+    ID_num = False
+    while not ID_num:
+    # needs to be an int
+        try:
+            ID_num = int(input("Enter driver SIN or licence number  "))
         
-    except ValueError: # let the user retry
-        print("That wasn't an integer!\n")
-        DriverAbstract(connection, curs)
+        except ValueError: # let the user retry
+            print("That wasn't an integer!\n")
 
 
-    # see if if was a SIN that exists
+    # see if it was a SIN that exists
     test = "select * from people where sin = :SIN"
     curs.execute(test, {'SIN':ID_num})
     try_SIN = curs.fetchone()
 
-    if try_SIN: # if SIN then get history from sin
+    if try_SIN: # if didn't return 'none' then it was valid sin entered
         query = "select * from ticket where violator_no = :sin"
         curs.execute(query, {'sin':ID_num})
         history = curs.fetchall()
@@ -186,20 +186,22 @@ def RecordSearch(connection, curs):
 
     if select == '1':
         DriverRecord(connection, curs)
+        # display search results until user presses enter again
+        userIn = input("\nPress enter to return to Main Menu  ")
 
     elif select == '2':
         DriverAbstract(connection, curs)
+        # display search results until user presses enter again
+        userIn = input("\nPress enter to return to Main Menu  ")
 
     elif select == '3':
         VehicleHistory(connection, curs)
+        # display search results until user presses enter again
+        userIn = input("\nPress enter to return to Main Menu  ")
 
-    elif select == '4':
-        Menu(connection, curs)
-
-    else:
-        print("\nthat wasn't a valid option!\n")
+        # if user presses '4' function returns to menu
+        # otherwise invalid input
+    elif select > '4' or select == '0' or select.isdigit() == False:
+        print("\nthat wasn't a valid option!")
         RecordSearch(connection, curs)
     
-    # display search results until user presses enter again
-    userIn = input("\nPress enter to return to Record Search Engine  ")
-    RecordSearch(connection, curs)

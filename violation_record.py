@@ -14,23 +14,23 @@ def GetValidSin(connection, curs, ID_type):
                  for user's convenience only since our verification is same for
                  either number in the system.
     """
-
-    # prompt for ID_type from user input and check digits and type
-    Sin = input("enter " + ID_type + ":  ")
-    while Sin.isdigit() == False:
-        print("You didn't enter an integer!\n")
-        GetValidSin(connection, curs, 'SIN')
-        
-
-    Sin = int(Sin)
+    while True:
+    # prompt for ID_type from user input and check type is int 
+        try: 
+            Sin = int(input("enter " + ID_type + ":  "))
+            break
+        except ValueError:
+            print("You didn't enter an integer!\n")
+      
     # check if SIN in system. Recurse function call if not.
     do = "select * from people where SIN =: sin"
     curs.execute(do, {'sin':Sin})
     person = curs.fetchone()
     
+    # prompt user again until valid SIN recieved
     if person == None:
         print("That " + ID_type + " doesn't exist in the system!")
-        GetValidSin(connection, curs, ID_type)
+        Sin = GetValidSin(connection, curs, ID_type)
 
     return Sin
 
@@ -42,16 +42,15 @@ def GetValidVin(connection, curs):
     for a vehicle since this is a requirment for issuing a violation record.
     Returns valid VIN(more commonly referred to as serial number)
     """
+
+    # get VIN as user input and check type is numeric
+    while True:
+        try: 
+            Vin = int(input("enter vehicle's serial number:  "))
+            break
+        except ValueError:
+            print("You didn't enter an integer!\n")
     
-    # get VIN as user input and check digits and type
-    Vin = input("enter vehicle's serial number:  ")
-    while (Vin.isdigit() == False):
-        print("You didn't enter an integer serial number!\n")
-        GetValidVin(connection, curs)
-
-    # convert type to int from str
-    Vin = int(Vin)
-
     # check if VIN in system. Recurse function call if not.
     do = "select * from vehicle where serial_no =: vin"
     curs.execute(do, {'vin':Vin})
@@ -59,7 +58,7 @@ def GetValidVin(connection, curs):
 
     if vehicle == None:
         print("That serial number doesn't exist in the system!")
-        GetValidVin(connection, curs)
+        Vin = GetValidVin(connection, curs)
 
     return Vin
 
