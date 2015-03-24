@@ -14,13 +14,18 @@ def GetValidSin(connection, curs, ID_type):
                  for user's convenience only since our verification is same for
                  either number in the system.
     """
-    while True:
-    # prompt for ID_type from user input and check type is int 
-        try: 
-            Sin = int(input("enter " + ID_type + ":  "))
-            break
-        except ValueError:
-            print("You didn't enter an integer!\n")
+    ValidSin = False
+    while not ValidSin:
+        # prompt for ID_type from user input and check type is int
+        Sin = input("enter " + ID_type + ":  ")
+        if len(Sin) <= 15:    
+            try: 
+                Sin = int(Sin)
+                ValidSin = True              
+            except ValueError:
+                print("You didn't enter an integer!\n")
+        else:
+            print("Input number too large!\n")
       
     # check if SIN in system. Recurse function call if not.
     do = "select * from people where SIN =: sin"
@@ -42,14 +47,18 @@ def GetValidVin(connection, curs):
     for a vehicle since this is a requirment for issuing a violation record.
     Returns valid VIN(more commonly referred to as serial number)
     """
-
+    ValidVin = False
     # get VIN as user input and check type is numeric
-    while True:
-        try: 
-            Vin = int(input("enter vehicle's serial number:  "))
-            break
-        except ValueError:
-            print("You didn't enter an integer!\n")
+    while not ValidVin:
+        Vin = input("enter vehicle's serial number:  ")
+        if len(Vin) <= 15:
+            try: 
+                Vin = int(Vin)
+                ValidVin = True
+            except ValueError:
+                print("You didn't enter an integer!\n")
+        else:
+            print("Input number too large!\n")
     
     # check if VIN in system. Recurse function call if not.
     do = "select * from vehicle where serial_no =: vin"
@@ -100,7 +109,7 @@ def ViolationRecord(connection, curs):
     above and the SIN, VIN, officer no., and violation type has to exist in 
     the system already to be be valid.
     '''
-    print("New Violation Record Form")
+    print("\n  New Violation Record Form")
     # get number of tickets to make new integer ticket number
     curs.execute("select COUNT(*) from ticket") 
     num_tickets = curs.fetchone()[0]
@@ -136,27 +145,39 @@ def ViolationRecord(connection, curs):
     exists = None
     while exists == None:
 
-        v_type = input("enter type of violation: ")
-        v_type = v_type.strip()    # strip any extra whitespace characters
+        v_type = input("enter type of violation (max 10 characters): ")
+        if len(v_type) <= 10:
+            query = "select * from ticket_type where TRIM((vtype)) = :vio"
+            curs.execute(query, {'vio':v_type})
+            exists = curs.fetchone()
 
-        query = "select * from ticket_type where TRIM((vtype)) = :vio"
-        curs.execute(query, {'vio':v_type})
-        exists = curs.fetchone()
-
-        if exists == None  :
-            print("invalid violation type!\n")
+            if exists == None  :
+                print("invalid violation type!\n")
+        else:
+            print("input too large!\n")
     
 
     # get date of violation from user
     vdate = GetValidDate(connection,curs).date()
-         
-    # get place violation happened from user
-    location = input("location of violation: ")
+    
+    while True:
+    # get place violation happened from user (max 20 characters)
+        location = input("location of violation: ")
+        if len(location) <= 20:
+            break
+        else:
+            print("location input too large!\n")
 
+    while True:
     # ask for any violation descriptions
-    notes = input("description of violation made: ")
-    if not notes: # notes section cannot be empty or get errors
-        notes = "NULL"
+        notes = input("description of violation made: ")
+        if not notes: # notes section cannot be empty or get errors
+            notes = "NULL"
+            break
+        if len(notes) <= 1024:
+            break
+        else:
+            print("input too large!\n")
 
     # Print all details back to user to verify correct before inserting data
     print("\n Summary of Violation \n")
