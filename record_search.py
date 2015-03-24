@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 def DriverRecord(connection, curs):
     '''
@@ -43,17 +44,17 @@ def DriverRecord(connection, curs):
     Record = curs.fetchall()
     if Record == []:
         print("\n Record does not exist")
-        RecordSearch(connection, curs)
 
+    else:
     # print the results for all entires including duplicates
-    for row in Record:
-        print("\n Name: ", row[0])
-        print(" Licence no.: ", row[1])
-        print(" Address: ", row[2])
-        print(" Date of Birth: ", row[3].date())
-        print(" Driving Class: ", row[4])
-        print(" Expiration date: ", row[5].date())
-        print(" Driving condition: ", row[6])
+        for row in Record:
+            print("\n Name: ", row[0])
+            print(" Licence no.: ", row[1])
+            print(" Address: ", row[2])
+            print(" Date of Birth: ", row[3].date())
+            print(" Driving Class: ", row[4])
+            print(" Expiration date: ", row[5].date())
+            print(" Driving condition: ", row[6])
         
         
 def DriverAbstract(connection, curs):
@@ -112,7 +113,7 @@ def DriverAbstract(connection, curs):
  
 
 def VehicleHistory(connection, curs):
-    ''' FINISH EDITING THIS
+    '''
     Vehicle History lists the number of times that a vehicle has been changed
     hand, the average price, and the number of violations it has been involved
     in by entering the vehicle's serial number.
@@ -125,14 +126,14 @@ def VehicleHistory(connection, curs):
     output: a list of all of the vehicle's history or a message saying there 
             is no history available for that vehicle
     '''
+    valid = False
+    while not valid:
+        try: 
+            VIN = int(input("Enter vehicle's serial number:  "))
+            valid = True
 
-    VIN = input("Enter vehicle's serial number:  ")
-    try: 
-        VIN = int(VIN)
-
-    except ValueError: # let the user retry
-        print("That wasn't an integer!\n")
-        VehicleHistory(connection, curs)
+        except ValueError: # let the user retry
+            print("That wasn't an integer!\n")
 
     # get vehicle history from database
     query = "SELECT  h.serial_no, count(DISTINCT a1.transaction_id), \
@@ -154,7 +155,10 @@ def VehicleHistory(connection, curs):
         print("\n Vehicle History \n")
         print(" Serial Numer: ", v_history[0])
         print(" Number of Sale Transactions: ", v_history[1])
-        print(" Average Price Sold For: $", v_history[2])
+
+        price = Decimal(v_history[2])   # format price
+        price = round(price,2)
+        print(" Average Price Sold For: $", price)
         print(" Number of Violations Involved in: ", v_history[3])
        
 

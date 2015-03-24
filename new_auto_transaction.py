@@ -1,4 +1,5 @@
 from new_person import NewPerson
+from decimal import Decimal
 import datetime 
 
 # This function takes in a valid seller_id and valid vehicle_id 
@@ -18,14 +19,16 @@ def OwnerCheck(seller_id, vehicle_id, connection, curs):
 def PriceErrCheck():
     format_err = True
     while (format_err):
-        price = input("Enter sale price (between 0.00 and 9999999.99: ")
+        price = input("Enter sale price (between 0.00 and 9999999.99): ")
         try:
-            float(price)
+            price = Decimal(price)
+            price = round(price,2)
         except:
-            print("Invalid input: must be a float")
+            print("Invalid price!")
         else:
-            format_err = False        
-    return float(price)
+            format_err = False 
+
+    return price
 
 # error handling for s_date
 def DateErrCheck(connection, curs):
@@ -184,7 +187,7 @@ def AutoTransaction(connection, curs):
     print("\nSummary of Auto Sale Transaction:")
     print("\ntransaction_id: ", transaction_id, "\nbuyer_id: ", buyer_id, \
                 "\nseller_id: ", seller_id, "\nvehicle_id: ", vehicle_id, \
-                "\ns_date: ", s_date, "\nprice: ", price)
+                "\ns_date: ", s_date, "\nprice: $", price)
 
     # Ask user to confirm auto sale transaction information
     check = input ("\nIs this information correct? (y/n): ")
@@ -206,7 +209,7 @@ def AutoTransaction(connection, curs):
     # Insert new transaction_id, seller_id, buyer_id, vehicle_id, s_date, price into auto_sale table
     data = [(transaction_id, seller_id, buyer_id, vehicle_id, s_date, price)]
     curs.bindarraysize = 1
-    curs.setinputsizes(int, 15, 15, 15, 11, float) 
+    curs.setinputsizes(int, 15, 15, 15, 11, 9) 
     curs.executemany( "INSERT into auto_sale VALUES (:1, :2, :3, :4, :5, :6)", data)
 
     print("\nAuto Sale Transaction was succesfully added to database.")
