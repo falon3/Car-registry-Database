@@ -76,8 +76,9 @@ def DriverAbstract(connection, curs):
             ID_num = int(input("Enter driver SIN or licence number  "))
         
         except ValueError: # let the user retry
-            print("That wasn't an integer!\n")
-
+            again = input("That wasn't an integer! Do you want to try again?\n (y/n): ")
+            if again == 'n' or again == 'N':
+                return
 
     # see if it was a SIN that exists
     test = "select * from people where sin = :SIN"
@@ -133,7 +134,9 @@ def VehicleHistory(connection, curs):
             valid = True
 
         except ValueError: # let the user retry
-            print("That wasn't an integer!\n")
+            again = input("That wasn't an integer! Do you want to try again?\n (y/n): ")
+            if again == 'n' or again == 'N':
+                return
 
     # get vehicle history from database
     query = "SELECT  h.serial_no, count(DISTINCT a1.transaction_id), \
@@ -209,3 +212,6 @@ def RecordSearch(connection, curs):
         print("\nthat wasn't a valid option!")
         RecordSearch(connection, curs)
     
+def exit():
+    pass
+
