@@ -13,21 +13,26 @@ def OwnerErrCheck( owner_type, connection, curs):
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"     
-            continue;
+            else:
+                continue;
         # check format
         format_err = CheckIfInt(SIN)
         if format_err == True:
             exit = input("Would you like to try that again? (y/n): ")
-            if (exit == "n" or exit != "N"):
+            if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else:
+                continue;
         # check db
         db_err = CheckIfIdExists(SIN, connection, curs)
         if db_err == True:
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else: 
+                continue;
+        if db_err == "EXIT":
+            return "EXIT"
     return SIN
 
 # error handling for primary_owner, secondary_owner
@@ -41,8 +46,12 @@ def CheckIfIdExists(some_id, connection, curs):
         check = input("Would you like to add this person into the database? (y/n): ")
         if (check == "y"):
             # Add a new person into the database
-            NewPerson(some_id, connection, curs)
-            return False
+            result = NewPerson(some_id, connection, curs)
+            if (result == True):
+                return False
+            # person was not sucessfully added
+            else:
+                return "EXIT"
         else: # if check == "n"
             return True
     else:
@@ -60,14 +69,16 @@ def TypeErrCheck( connection, curs):
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else:
+                continue;
         # check db
         db_err = CheckIfTypeExists(type_id, connection, curs)
         if db_err == True:
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else:
+                continue;
     return type_id
 
 # error handling for type_id
@@ -93,14 +104,16 @@ def YearErrCheck():
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else:
+                continue;
         # check format
         format_err = CheckIfInt(year)
         if format_err == True:
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"
-            continue;
+            else:
+                continue;
     return int(year)
 
 # error handling for maker, model, color
@@ -262,7 +275,6 @@ def NewVehicle(connection, curs):
         # ask user to confirm registration information
         check = input ("\nIs this information correct? (y/n): ")
         if (check == "n"):
-            print("\nNew Vehicle was not added to database. Please try again.")
             break;
 
         # Insert serial_no into vehicle table
@@ -288,5 +300,8 @@ def NewVehicle(connection, curs):
         
         # exit loop successfully
         exit = True
+
+    if (exit == False):
+        print("\nVehicle was not added to database.\n")
 
     print("\nReturning to main menu\n")
