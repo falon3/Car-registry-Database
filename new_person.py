@@ -8,7 +8,10 @@ def DateErrCheck(connection, curs):
         try:
             vdate = datetime.datetime.strptime(date, "%y-%m-%d")
         except:
-            print("Invalid birthdate, try again!\n")
+            print("Invalid birthdate")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
         else:
             date_err = False
     return vdate
@@ -21,7 +24,10 @@ def GenderErrCheck():
         if (gender == "f" or gender == "m"):
             format_err = False  
         else:
-            print("Invalid input: must be (m/f)") 
+            print("Invalid input: must be (m/f)")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT" 
     return gender
 
 # error handling for height, weight
@@ -32,39 +38,27 @@ def FloatErrCheck( a_str ):
         try:
             float(measurement)
         except:
-            print("Invalid input: must be float of form ___.__: ")
+            print("Invalid input: must be number between 0.00 and 999.99: ")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
         else:
             format_err = False
-    return float(measurement)
+    return measurement
 
 # error handling for name, eyecolor, haircolor, addr, gender
 def StrErrCheck( a_str, max_len):
     len_err = True
-    format_err = True
-    while (format_err or len_err):
+    while (len_err):
         descriptor = input ("Enter person's " + a_str + ": ")
-        len_err = CheckLen(descriptor, max_len )
-        if len_err == True:
-            continue;
-        format_err = CheckIfAlpha(descriptor)
-        if format_err == True:
-            continue;
+        if (len(a_str) <= max_len):
+            len_err = False
+        else:
+            print("Invalid input: Must be <=", + max_len, + "digits long")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
     return descriptor
-
-# error handling for StrErrCheck
-def CheckIfAlpha(a_str):
-    if a_str.isalpha():
-        return False
-    else:
-        return True
-
-# error handling for StrErrCheck
-def CheckLen(a_str, expected_len):
-    if len(a_str) <= expected_len:
-        return False
-    else:
-        print("Invalid input: Must be <=", expected_len, "digits long")
-        return True
 
 '''
 This component is used to create a new person in the database.
@@ -87,40 +81,76 @@ the people table in the database
 parameters: sin, connection, curs
 return values: none
 assumptions:
+    - user will enter valid alpha strings (spaces permitted)
     - sin is valid (9 digits long) and does not already
       exist in the database
 '''
+
 def NewPerson( SIN, connection, curs):
 
     print("\nNew Person:\n")    
 
-    name = StrErrCheck( "name ", 40)
-    height = FloatErrCheck("height")
-    weight = FloatErrCheck("weight")
-    eyecolor = StrErrCheck("eyecolor", 10) 
-    haircolor = StrErrCheck("haircolor", 10)
-    addr = StrErrCheck( "address", 50)
-    gender = GenderErrCheck()
-    birthday = DateErrCheck( connection, curs).date()
+    exit = False
 
-    # Display new person information to user
-    print("\nSummary of New Person: ")
-    print("\nsin: ", SIN, "\nname: ", name, "\nheight: ", height, \
+    while (exit == False):
+        
+        name = StrErrCheck( "name", 40)
+        if (name == "EXIT"):
+            break;
+
+        height = FloatErrCheck("height")
+        if (height == "EXIT"):
+            break;
+
+        weight = FloatErrCheck("weight")
+        if (weight == "EXIT"):
+            break;
+
+        eyecolor = StrErrCheck("eyecolor", 10) 
+        if (eyecolor == "EXIT"):
+            break;
+
+        haircolor = StrErrCheck("haircolor", 10)
+        if (haircolor == "EXIT"):
+            break;
+
+        addr = StrErrCheck( "address", 50)
+        if (addr == "EXIT"):
+            break;        
+
+        gender = GenderErrCheck()
+        if (gender == "EXIT"):
+            break;    
+
+        birthday = DateErrCheck( connection, curs)
+        if (birthday == "EXIT"):
+            break;
+        
+        birthday = birthday.date()
+        
+        # Display new person information to user
+        print("\nSummary of New Person: ")
+        print("\nsin: ", SIN, "\nname: ", name, "\nheight: ", height, \
                 "\nweight: ", weight, "\neyecolor: ", eyecolor, \
                 "\nhaircolor: ", haircolor, "\naddress: ", addr, \
                 "\ngender: ", gender, "\nbirthday: ", birthday)
 
-    # ask user to confirm auto sale transaction information
-    check = input ("\nIs this information correct? (y/n): ")
-    if (check == "n"):
-        print("\nNew Person was not added to database. Please try again.")
-        NewPerson( SIN, connection, curs)
+        # ask user to confirm auto sale transaction information
+        check = input ("\nIs this information correct? (y/n): ")
+        if (check == "n"):
+            print("\nNew Person was not added to database. Please try again.")
+            break;
     
-    # Insert new person into people table
-    data = [(SIN, name, height, weight, eyecolor, haircolor, addr, gender, birthday)]
-    curs.bindarraysize = 1
-    curs.setinputsizes(15, 40, float, float, 10, 10, 50, 1)
-    curs.executemany("INSERT into people (sin, name, height, weight, eyecolor, haircolor, addr, gender, birthday)"
+        # Insert new person into people table
+        data = [(SIN, name, height, weight, eyecolor, haircolor, addr, gender, birthday)]
+        curs.bindarraysize = 1
+        curs.setinputsizes(15, 40, float, float, 10, 10, 50, 1)
+        curs.executemany("INSERT into people (sin, name, height, weight, eyecolor, haircolor, addr, gender, birthday)"
                         "VALUES (:1, :2, :3, :4, :5, :6, :7, :8, :9)", data)
 
-    print("\nPerson was succesfully added to database.")
+        print("\nPerson was succesfully added to database.")
+        
+        # exit loop sucessfully
+        exit = True
+
+    return exit

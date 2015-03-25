@@ -1,4 +1,5 @@
 from new_person import NewPerson
+from decimal import Decimal
 import datetime 
 
 # This function takes in a valid seller_id and valid vehicle_id 
@@ -18,14 +19,21 @@ def OwnerCheck(seller_id, vehicle_id, connection, curs):
 def PriceErrCheck():
     format_err = True
     while (format_err):
-        price = input("Enter sale price (between 0.00 and 9999999.99: ")
+        price = input("Enter sale price (between 0.00 and 9999999.99): ")
         try:
-            float(price)
+            price = Decimal(price)
+            price = round(price,2)
         except:
-            print("Invalid input: must be a float")
+            print("Invalid price!")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         else:
-            format_err = False        
-    return float(price)
+            format_err = False 
+
+    return price
 
 # error handling for s_date
 def DateErrCheck(connection, curs):
@@ -35,7 +43,12 @@ def DateErrCheck(connection, curs):
         try:
             vdate = datetime.datetime.strptime(date, "%y-%m-%d")
         except:
-            print("Invalid date, try again!\n")
+            print("Invalid date")
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         else:
             date_err = False
     return vdate
@@ -49,13 +62,25 @@ def VehErrCheck( connection, curs):
         vehicle_id = input("Enter vehicle_id: ")
         len_err = CheckLen(vehicle_id, 15)
         if len_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         format_err = CheckIfInt(vehicle_id)
         if format_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         db_err = CheckIfVehExists(vehicle_id, connection, curs)
         if db_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
     return int(vehicle_id)
 
 # error handling for vehicle_id
@@ -76,15 +101,29 @@ def IdErrCheck( id_type, connection, curs):
     len_err = True
     while (format_err or db_err or len_err):
         some_id = input("Enter " + id_type + ": ")
-        len_err = CheckLen(some_id, 9)
+        len_err = CheckLen(some_id, 15)
         if len_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         format_err = CheckIfInt(some_id)
         if format_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
         db_err = CheckIfIdExists(some_id, connection, curs)
         if db_err == True:
-            continue;
+            exit = input("Would you like to try that again? (y/n): ")
+            if (exit == "n" or exit == "N"):
+                return "EXIT"
+            else:
+                continue;
+        if db_err == "EXIT":
+            return "EXIT"
     return int(some_id)
 
 # error handling for buyer_id, seller_id, vehicle_id
@@ -106,8 +145,12 @@ def CheckIfIdExists(some_id, connection, curs):
         check = input("Would you like to add this person into the database? (y/n): ")
         if (check == "y"):
             # add a new person into the database
-            NewPerson(some_id, connection, curs)
-            return False
+            result = NewPerson(some_id, connection, curs)
+            if (result == True):
+                return False
+            # if person was not successfully added
+            else:
+                return "EXIT"
         else: # if check == "n"
             return True
     else:
@@ -156,57 +199,84 @@ parameters: connection, curs
 return values: none
 assumptions:
     - user is entering valid price 
-    - user enters sins that are 9 digits long 
 '''
 def AutoTransaction(connection, curs):
 
     print("\nAuto Sale Transaction:\n") 
     
-    # generate transaction_id
-    transaction_id = GenerateTransaction( connection, curs )
+    exit = False
 
-    # ask user to input relevant information
-    buyer_id = IdErrCheck( "buyer_id", connection, curs )
+    while (exit == False):
+
+        # generate transaction_id
+        transaction_id = GenerateTransaction( connection, curs )
+        if (transaction_id == "EXIT"):
+            break;
+
+        # ask user to input relevant information
+        buyer_id = IdErrCheck( "buyer_id", connection, curs )
+        if (buyer_id == "EXIT"):
+            break;    
+
+        # need to confirm that seller actually owns vehicle
+        owner_err = True
+        while (owner_err):
+
+            seller_id = IdErrCheck( "seller_id", connection, curs)
+            if (seller_id == "EXIT"):
+                break;
     
-     # need to confirm that seller actually owns vehicle
-    owner_err = True
-    while (owner_err):
+            vehicle_id = VehErrCheck( connection, curs)
+            if (vehicle_id == "EXIT"):
+                break;
 
-        seller_id = IdErrCheck( "seller_id", connection, curs)
-        vehicle_id = VehErrCheck( connection, curs)
-        owner_err = OwnerCheck(seller_id, vehicle_id, connection, curs)	
+            owner_err = OwnerCheck(seller_id, vehicle_id, connection, curs)	
+            if (owner_err == "EXIT"):
+                break;
     
+        # if owner does not actually own vehicle
+        if (seller_id == "EXIT" or vehicle_id == "EXIT" or owner_err == "EXIT"):
+            break;
 
-    s_date = DateErrCheck(connection, curs).date()
-    price = PriceErrCheck()
+        s_date = DateErrCheck(connection, curs).date()
+        if (s_date == "EXIT"):
+            break;        
 
-    # Display auto sale transaction information to user
-    print("\nSummary of Auto Sale Transaction:")
-    print("\ntransaction_id: ", transaction_id, "\nbuyer_id: ", buyer_id, \
+        price = PriceErrCheck()
+        if (price == "EXIT"):
+            break;
+
+        # Display auto sale transaction information to user
+        print("\nSummary of Auto Sale Transaction:")
+        print("\ntransaction_id: ", transaction_id, "\nbuyer_id: ", buyer_id, \
                 "\nseller_id: ", seller_id, "\nvehicle_id: ", vehicle_id, \
-                "\ns_date: ", s_date, "\nprice: ", price)
+                "\ns_date: ", s_date, "\nprice: $", price)
 
-    # Ask user to confirm auto sale transaction information
-    check = input ("\nIs this information correct? (y/n): ")
-    if (check == "n"):
-        print("\nAuto Sale Transaction was not added to database. Please try again.")
-        AutoTransaction( connection, curs)
+        # Ask user to confirm auto sale transaction information
+        check = input ("\nIs this information correct? (y/n): ")
+        if (check == "n"):
+            break;
 
-    # Delete owners from owners with vehicle_id
-    command = "DELETE from owner WHERE vehicle_id =: Vehicle_id"
-    curs.execute (command, {"Vehicle_id": vehicle_id})
+        # Delete owners from owners with vehicle_id
+        command = "DELETE from owner WHERE vehicle_id =: Vehicle_id"
+        curs.execute (command, {"Vehicle_id": vehicle_id})
 
-    # Insert new owner_id(buyer_id), vehicle_id into owner table
-    data = [(buyer_id, vehicle_id, "y")]
-    curs.bindarraysize = 1
-    curs.setinputsizes(15,15,1)
-    curs.executemany("INSERT into owner(owner_id,vehicle_id, is_primary_owner)"
+        # Insert new owner_id(buyer_id), vehicle_id into owner table
+        data = [(buyer_id, vehicle_id, "y")]
+        curs.bindarraysize = 1
+        curs.setinputsizes(15,15,1)
+        curs.executemany("INSERT into owner(owner_id,vehicle_id, is_primary_owner)"
                         "VALUES (:1, :2, :3)", data)
 
-    # Insert new transaction_id, seller_id, buyer_id, vehicle_id, s_date, price into auto_sale table
-    data = [(transaction_id, seller_id, buyer_id, vehicle_id, s_date, price)]
-    curs.bindarraysize = 1
-    curs.setinputsizes(int, 15, 15, 15, 11, float) 
-    curs.executemany( "INSERT into auto_sale VALUES (:1, :2, :3, :4, :5, :6)", data)
+        # Insert new transaction_id, seller_id, buyer_id, vehicle_id, s_date, price into auto_sale table
+        data = [(transaction_id, seller_id, buyer_id, vehicle_id, s_date, price)]
+        curs.bindarraysize = 1
+        curs.setinputsizes(int, 15, 15, 15, 11, 9) 
+        curs.executemany( "INSERT into auto_sale VALUES (:1, :2, :3, :4, :5, :6)", data)
 
-    print("\nAuto Sale Transaction was succesfully added to database.")
+        print("\nAuto Sale Transaction was succesfully added to database.")
+
+    if (exit == False):
+        print("\nAuto Sale Transaction was not added to database. Please try again.")
+
+    print("\nReturning to main menu\n")
