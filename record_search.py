@@ -48,14 +48,46 @@ def DriverRecord(connection, curs):
     else:
     # print the results for all entires including duplicates
         for row in Record:
-            print("\n Name: ", row[0])
+            
+            # could possibly be null
+            if row[0]:
+                print("\n Name: ", row[0])
+            else:
+                print("\n Name: ")
+            
+            # is a key so cant be NULL
             print(" Licence no.: ", row[1])
-            print(" Address: ", row[2])
-            print(" Date of Birth: ", row[3].date())
-            print(" Driving Class: ", row[4])
-            print(" Expiration date: ", row[5].date())
-            print(" Driving condition: ", row[6])
+            
+            # could possibly be null
+            if row[2]:
+                print(" Address: ", row[2])
+            else:
+                 print(" Address: ")
         
+            # could possibly be null
+            if row[3]:
+                print(" Date of Birth: ", row[3].date)
+            else:
+                print(" Date of Birth: ")
+
+            # could possibly be null
+            if row[4]:
+                print(" Driving Class: ", row[4])
+            else: 
+                print(" Driving Class: ")
+    
+            # could possibly be null
+            if row[5]:
+                print(" Expiration date: ", row[5].date())
+            else:
+                print(" Expiration date: ")
+
+            # not sure if this could could possibly be NULL,
+            # so just incase, here is some error handling
+            if row[6]:
+                print(" Driving condition: ", row[6])
+            else:
+                print(" Driving condition: \n")
         
 def DriverAbstract(connection, curs):
     '''
@@ -104,15 +136,25 @@ def DriverAbstract(connection, curs):
 
     else: # print out each violation ever recieved by driver
         for row in history:
-            print("\n Ticket Numer: ", row[0])
-            print(" Violator SIN: ", row[1])
+
+            # these are all keys (primary or foreign) so can't possibly be NULL
+            print("\n Ticket Number: ", row[0])
+            print(" Violator SIN: ", row[1])    
             print(" Vehicle Serial_no: ", row[2])
             print(" Officer ID: ", row[3])
             print(" Violation Type: ", row[4])
-            print(" Date of Violation: ", row[5].date())
-            print(" Violation Location: ", row[6], "\n")
- 
-
+            
+            # could possibly be null
+            if row[5]:
+                print(" Date of Violation: ", row[5].date())
+            else:
+                print(" Date of Violation: ")        
+            # could possibly be null
+            if row[6]:
+                print(" Violation Location: ", row[6], "\n")
+            else:
+                print(" Violation Location: \n")
+            
 def VehicleHistory(connection, curs):
     '''
     Vehicle History lists the number of times that a vehicle has been changed
@@ -156,6 +198,7 @@ def VehicleHistory(connection, curs):
 
     else: # print out vehicle history
         print("\n Vehicle History \n")
+        # these can't possibly be null
         print(" Serial Numer: ", v_history[0])
         print(" Number of Sale Transactions: ", v_history[1])
 
