@@ -1,0 +1,442 @@
+\documentclass[12pt]{article}
+%\usepackage{latexsym,graphicx}
+\usepackage{url,amsmath,amssymb,amsthm,enumerate}
+\usepackage{graphicx,caption,subcaption,float}
+
+\usepackage{etoolbox}
+\let\bbordermatrix\bordermatrix
+\patchcmd{\bbordermatrix}{8.75}{4.75}{}{}
+\patchcmd{\bbordermatrix}{\left(}{\left[}{}{}
+\patchcmd{\bbordermatrix}{\right)}{\right]}{}{}
+
+
+\setlength{\textheight}{9.5in}
+\setlength{\textwidth}{7in}
+\setlength{\oddsidemargin}{-.6in}
+\setlength{\evensidemargin}{-.6in}
+\setlength{\headsep}{.5in}
+\setlength{\topmargin}{-.7in}
+%\def\mod{\mbox{\rm \ mod\ }}
+\pagestyle{empty}
+\title{CMPUT 291 \\ Project 1 Design Report}
+\author{Falon Scheers, Alanna McLafferty, Isabella Lin}
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{Overview}
+Our application system has been designed such that each component is contained in its own module. Components are accessed via a gateway function in each module, and are otherwise independent of each other. The one exception is the module dealing with creating new people records, which is inherited and accessed by several modules. Error checking and verification is first performed against the user input; only when we are sure that the input is logically valid do we incorporate it into a database query or statement.
+
+
+The main modules in our application are:
+\begin{itemize}
+\item \texttt{main}
+\item \texttt{new\_vehicle}
+\item \texttt{new\_person}
+\item \texttt{new\_auto\_transaction}
+\item \texttt{new\_driver}
+\item \texttt{violation\_record}
+\item \texttt{record\_search}
+\end{itemize}
+
+%%% main module 
+\newpage
+\section{\texttt{main}}
+
+This module handles login and connection with the Oracle database, as well as the initial user interface for the program.
+\subsection{Interfaces}
+This module should be called to initiate the program. \texttt{menu} may be called from another module if the cxOracle connection and cursor arguments are provided.
+
+\subsection{Functions}
+\subsubsection{\texttt{Menu()}}
+Description: \\
+\indent Displays the menu of user options, and upon user input calls the appropriate entry function from other modules. Passes the \texttt{connection} and \texttt{curs} parameters to these other modules to enable interfacing with the database.\\\\
+Parameters: None\\\\
+Return value: None
+\subsubsection{\texttt{Exit()}}
+Description: \\
+\indent Gracefully exits the program.\\\\
+Parameters: None\\\\
+Return value: None
+
+
+\subsection{Inherits}
+From \texttt{cx\_Oracle}: \texttt{DatabaseError, connect}\\
+From \texttt{new\_vehicle}: \texttt{NewVehicle}\\
+From \texttt{new\_auto\_transaction}: \texttt{AutoTransaction}\\
+From \texttt{new\_driver}: \texttt{NewDriver}\\
+From \texttt{violation\_record}: \texttt{ViolationRecord}\\
+From \texttt{record\_search}: \texttt{RecordSearch}
+
+%%% new_vehicle module
+\newpage
+\section{\texttt{new\_vehicle}}
+This module handles the registration of a new vehicle.
+\subsection{Interfaces}
+The module should be entered via calling the function \texttt{NewVehicle}. It is called by the main module.
+References \texttt{new\_driverperson} via \texttt{NewPerson}.
+\subsection{Functions}
+\subsubsection{\texttt{NewVehicle}}
+Description:\\
+\indent This function obtains user information and checks the
+validity of the information sometimes by querying the
+database. If the user input is valid, adds the new vehicle
+information into the vehicle table.
+Then it adds the new primary owner information into owner table.
+If a secondary owner is given it then adds the new secondary
+owner into the owner table.
+
+Information needed from the user:
+\begin{itemize}
+\item serial number of vehicle (int CHAR(15))
+\item maker (VARCHAR(20))
+\item model (VARCHAR(20))
+\item year (Number(4,0))
+\item color (VARCHAR(10))
+\item type\_id (integer)
+\item primary owner sin (CHAR(15))
+\item secondary owner sin (CHAR(15)) 
+\end{itemize}
+
+\noindent Assumptions:
+\begin{itemize}
+\item It is only possible to have one secondary owner
+\item All vehicles must have one primary owner
+\item User enters SINs that are 9 digits long
+\item There are some valid type\_ids already entered in the 
+      vehicle\_type table
+\end{itemize}
+Parameters:\\
+\indent \texttt{connection, curs} - from an active connection to the database\\\\
+Return value: None
+\subsubsection{\texttt{OwnerErrCheck}}
+Description: \\
+\indent Prompts the user for a SIN and carries out checks on it to ensure validity.\\\\
+\noindent Parameters: \\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent\texttt{owner\_type} - either 'primary' or 'secondary'\\\\
+Returns: \\
+\indent String containing the owner's SIN if a valid SIN was entered. If not, the string "EXIT" is returned.
+\subsubsection{\texttt{CheckIfIdExists}}
+Description:\\
+\indent Checks if the SIN already exists in the people table. If not, prompts for insertion of a new person through the module \texttt{new\_person}.\\\\
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent \texttt{some\_id} - string containing a SIN to query\\\\
+Returns:\\
+\indent \texttt{False} if the ID exists or if a person was successfully added, \texttt{True} if the ID does not exist and the user chose not to add a new person. The string "EXIT" is returned if a new person was not successfully added.
+\subsection{Undocumented helper functions}
+\texttt{TypeErrCheck, CheckIfTypeExists, YearErrCheck, StrErrCheck, SerialErrCheck, CheckLen, CheckIfVehicleExists, CheckIfInt}
+\subsection{Inherits}
+From \texttt{new\_driver}: \texttt{NewDriver}
+
+%%% new_person module
+\newpage
+\section{\texttt{new\_person}}
+This module deals with the creation of a new person record.
+
+\subsection{Interfaces}
+This module is accessed via the \texttt{NewPerson} function. It is used by the \texttt{new\_vehicle} and \texttt{new\_auto\_transaction} modules.
+
+\subsection{Functions}
+
+\subsubsection{\texttt{NewPerson}}
+Description:\\
+\indent This function obtains user information and checks the
+validity of the information.
+If the user input is valid, it adds the new person into
+the people table in the database
+
+Information needed from the user:
+\begin{itemize}
+\item person's name (CHAR(40))
+\item person's height (number(5,2))
+\item person's weight (number(5,2))
+\item person's eyecolor (VARCHAR(10))
+\item person's haircolor (VARCHAR(10))
+\item person's addresss (VARCHAR(50))
+\item person's gender (CHAR(1))
+\item person's birthday (DATE)
+\end{itemize}
+
+\noindent Assumptions:
+\begin{itemize}
+\item The user will enter valid alpha strings (spaces permitted)
+\item The SIN is valid (9 digits long) and does not already
+      exist in the database
+\end{itemize}
+
+\noindent Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent\texttt{SIN} - a string containing the person's SIN\\\\
+Returns:\\
+\indent \texttt{True} if the operation is a success.
+\subsection{Undocumented helper functions}
+\texttt{DateErrCheck, GenderErrCheck, FloatErrCheck, StrErrCheck}
+\subsection{Inherits}
+From \texttt{datetime}: \texttt{datetime.datetime.strptime} for date error checking.
+%%% new_auto_transaction module
+\newpage
+\section{\texttt{new\_auto\_transaction}}
+This module is used by a registering officer to create 
+an auto sale transaction record.
+\subsection{Interfaces}
+This module should be accessed via calling \texttt{AutoTransaction}. It is called by the \texttt{main} module.
+
+\subsection{Functions}
+\subsubsection{\texttt{AutoTransaction}}
+Description:\\
+\indent This function obtains user information and checks the 
+validity of the information sometimes by querying the 
+database. If the user input is valid, it removes all 
+previous vehicle owner information from owner table.
+Then it adds the new owner information into owner table.
+Finally, it adds a new auto sale transaction into 
+the auto sale table.\\
+Information needed from the user:
+\begin{itemize}
+\item buyer's SIN (int CHAR(15))
+\item seller's SIN (int CHAR(15))
+\item vehicle serial number (int CHAR(15))
+\item date of sale (DATE)
+\item vehicle price (numeric(9,2))
+\end{itemize}
+Information generated by database:
+\begin{itemize}
+\item transaction id (int)
+\end{itemize}
+\noindent Assumption:
+\begin{itemize}
+\item The user is entering a valid price.
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None.
+
+
+\subsection{Undocumented helper functions}
+\texttt{OwnerCheck, PriceErrCheck, DateErrCheck, VehErrCheck, CheckIfVehExists, IdErrCheck, CheckLen, CheckIfIdExists, GenerateTransaction, CheckIfInt}
+
+\subsection{Inherits}
+From \texttt{decimal}: \texttt{Decimal} for price format conversion.\\
+From \texttt{datetime}: \texttt{datetime.datetime.strptime} for date error checking.\\
+From \texttt{new\_person}: \texttt{NewPerson} for new person record creation.
+
+%%% new_driver module
+\newpage
+\section{\texttt{new\_driver}}
+This module creates a new driver's license record.
+\subsection{Interfaces}
+This module should be accessed through the \texttt{NewDriver} function. It is called by the \texttt{main} module.
+
+\subsection{Functions}
+
+\subsubsection{\texttt{NewDriver}}
+Description:\\
+\indent This function serves as a gateway to creating a new driver's license record. It does so by requesting the SIN to be input and then deals with the following cases:
+\begin{itemize}
+\item SIN already associated to a license - return to menu.
+\item SIN already associated with a person; no existing licence - proceed to licence creation.
+\item No records exist - prompt for person record creation.
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database
+\\\\
+Returns: None.
+
+\subsubsection{\texttt{NewPeopleUI}}
+Description:\\
+\indent This function serves as the gateway through which a new person record is created.
+We assume that the SIN entered at this point is logically correct, and prompt for the remaining required information:
+\begin{itemize}
+\item name VARCHAR(40)
+\item height number(5,2)
+\item weight number(5,2)
+\item eyecolor VARCHAR(10)
+\item haircolor VARCHAR(10)
+\item addr VARCHAR2(50)
+\item gender CHAR ('m' or 'f')
+\item birthday DATE
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent\texttt{sin} - string containing a valid SIN\\\\
+Returns:\\
+\indent \texttt{1} if the operation was successful; \texttt{0} if not.
+
+\subsubsection{\texttt{newDriverUI}}
+Description:\\
+\indent This function is the interface for creating a new driving licence record, once we have verified that the SIN has a person associated in the database. Correctness of data length is handled by truncating the data if necessary. We assume that the driver licence number is determined externally; that is, we do not obtain it from the database.\\
+The user will be prompted for the following info:
+\begin{itemize}
+\item licence\_no CHAR(15)
+\item class VARCHAR(10)
+\item filename of photo BLOB
+\item issuing\_date DATE
+\item expiring\_date DATE
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent\texttt{sin} - string containing a valid SIN\\\\
+Returns:\\
+\indent \texttt{1} if the operation was successful; \texttt{0} if not.
+
+\subsubsection{\texttt{CreateRestrictions}}
+Description:\\
+\indent Creates the entries in the database for restrictions on driving licences. Called after the driving licence record has been created. We assume no restrictions currently exist for the driver's licence, and keep track of which ones have already been entered. We verify that a new restriction must exist in the driving\_condition table, and that it has not already been entered. We assume that any driver can have any number of restrictions (that is, some restrictions do not preclude or include others).\\\\
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\
+\indent\texttt{licence\_no} - string containing a valid licence number\\\\
+Returns:\\
+\indent \texttt{1} if the operation was successful; \texttt{0} if not.
+
+\subsection{Undocumented helper functions}
+\texttt{verifyRestrictions, newRecUI, verifyYN, requestPhoto, requestSIN, requestLicence, requestDate, requestGender, requestAddr, requestBodyStats, requestCharT, requestName, recordExists, licenceExists}
+
+\subsection{Inherits}
+From \texttt{cx\_Oracle}: \texttt{BLOB} specification for input of photo file.\\
+From \texttt{datetime}: \texttt{datetime.datetime.strptime} for date error checking.
+
+%%% violation_record module
+\newpage
+\section{\texttt{violation\_record}}
+ This component is used by a police officer to issue a traffic ticket
+    and record the violation.
+\subsection{Interfaces}
+This module should be called through the \texttt{ViolationRecord} function. It is called by the \texttt{main} module.
+\subsection{Functions}
+
+\subsubsection{\texttt{ViolationRecord}}
+Description:\\
+\indent Obtain the informaton needed from user and database to create a 
+    ticket record in the database table 'ticket'. Need to check user input
+    for validity. The information entered needs to match the formats listed
+    above and the SIN, VIN, officer no., and violation type has to exist in 
+    the system already to be be valid.\\
+Information needed from the user (police officer):
+\begin{itemize}
+\item violator's SIN (9 digit integer CHAR)
+\item violator's VIN (integer CHAR)
+\item officer's ID   (integer CHAR)
+\item violation type (char)
+\item date           (YYYY-MM-DD date)
+\item location of violation  (varchar)
+\item any notes about the incident  (varchar)
+\end{itemize}
+Information that can be obtained from in the database already:
+\begin{itemize}
+\item Ticket number
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None
+
+\subsection{Undocumented helper functions}
+\texttt{GetValidSin, GetValidVin, GetValidDate}
+
+\subsection{Inherits}
+From \texttt{datetime}: \texttt{datetime.datetime.strptime} for date error checking.
+
+%%% record_search module
+\newpage
+\section{\texttt{record\_search}}
+This module contains the search engine for the car registry database.
+\subsection{Interfaces}
+This module should be invoked via the \texttt{RecordSearch} function. It is called by the \texttt{main} module.
+
+\subsection{Functions}
+
+\subsubsection{\texttt{RecordSearch}}
+Description:\\
+\indent Allows a user search for one of the following and displays the output:
+\begin{itemize}
+\item The name, licence\_no, addr, birthday, driving class, driving\_condition,
+    and the expiring\_data of a driver by entering either a licence\_no or a
+    given name
+\item All violation records received by a person if  the drive licence\_no or 
+    sin of a person is entered.
+\item The vehicle\_history, including the number of times that a vehicle has 
+    been changed hand, the average price, and the number of violations it 
+    has been involved by entering the vehicle's serial number
+\end{itemize}
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None
+
+\subsubsection{\texttt{DriverRecord}}
+Description:\\
+\indent Driver Record gives the name, licence\_no, addr, birthday, class,
+    driving\_condition, and expiring\_date for a driver that is searched via 
+    a query into the database using what the user entered as the name or 
+    licence number. \\\\
+Input requested from user:
+\begin{itemize}
+\item name (case sensitive), or
+\item licence number
+\end{itemize}
+Output:\\
+\indent A list of all of the results or a message saying the record doesn't exist.\\\\
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None
+
+\subsubsection{\texttt{DriverAbstract}}
+Description:\\
+\indent Driver Abstract lists all of the violations for a driver that 
+    is searched via a query into the database using what the user 
+    entered as the driver's SIN or licence number. \\\\
+Input requested from user:
+\begin{itemize}
+\item SIN, or
+\item licence number
+\end{itemize}
+Output:\\
+\indent A list of all of the violations or a message saying there 
+            is no violation history.\\\\
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None
+
+\subsubsection{\texttt{VehicleHistory}}
+Description:\\
+\indent Vehicle History lists the number of times that a vehicle has been changed
+    hand, the average price, and the number of violations it has been involved
+    in by entering the vehicle's serial number. History is searched for via a query into the database using what the user 
+    entered as the vehicle's serial number. \\\\
+Input requested from user:
+\begin{itemize}
+\item Vehicle serial number
+\end{itemize}
+Output:\\
+\indent A list of all of the vehicle's history or a message saying there 
+            is no history available for that vehicle.\\\\
+Parameters:\\
+\indent\texttt{connection, curs} - from an active connection to the database\\\\
+Returns: None
+
+\subsection{Undocumented helper functions}
+\texttt{exit}
+
+\subsection{Inherits}
+From \texttt{datetime}: \texttt{datetime.datetime.strptime} for date error checking.\\
+From \texttt{decimal}: \texttt{Decimal} for price format conversion.
+\end{document}
+
+%%% END OF DOCUMENT
+%%% Following statements will not be compiled.
+% The following is a template for a module desc
+\section{\texttt{ModuleOrPyfileNameHere}}
+\subsection{Interfaces}
+\subsection{Functions}
+\subsection{Undocumented helper functions}
+\subsection{Inherits}
+
+% The following is the template for a function desc
+\subsubsection{\texttt{FunctionNameHere}}
+Description:\\
+\indent \\\\
+Parameters:\\
+\indent \\\\
+Returns:\\
+\indent
