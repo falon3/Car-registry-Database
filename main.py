@@ -1,5 +1,6 @@
 import sys
 import cx_Oracle
+import getpass
 from new_vehicle import NewVehicle
 from violation_record import ViolationRecord
 from new_driver import NewDriver
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     while (login_err):
         try:
             ccid = input('\nEnter your CCID: ')
-            password = input('Password: ')
+            password = getpass.getpass('Password: ')
             login = ccid + '/' + password + '@gwynne.cs.ualberta.ca:1521/CRS'
             connection = cx_Oracle.connect(login)
             # this makes everything auto commit so no worries of exiting before commiting new info

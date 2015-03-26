@@ -215,7 +215,6 @@ return values: none
 assumptions:
     - it is only possible to have one secondary owner
     - all vehicles must have one primary owner
-    - user enters sins that are 9 digits long
     - there are some valid type_ids already entered in the 
       vehicle_type table
 '''
