@@ -149,7 +149,7 @@ def ViolationRecord(connection, curs):
         # (and violator is known) 
         isRadar = ""
         while ((isRadar != "Y") and (isRadar != "N")):
-            isRadar = input("Is this ticket being issued to the primary owner of the vehicle? \n (Y/N):  ")
+            isRadar = input("Is this ticket being issued to the primary owner of the vehicle? \n (y/n):  ")
             isRadar = isRadar.upper()
     
             if isRadar == "N": 
