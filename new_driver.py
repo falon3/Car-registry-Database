@@ -362,7 +362,8 @@ must be 9 digits long and devoid of external formatting, i.e. 123456789."""
     if licence == '':
         return 0
     print("You have entered:", licence)
-    flag == verifyYN()
+    # changed from == to =
+    flag = verifyYN()
     if flag == 1:
         if licenceExists(licence, 'drive_licence', connection, curs):
             print(existserr)
