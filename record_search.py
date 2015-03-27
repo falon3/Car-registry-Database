@@ -181,8 +181,8 @@ def VehicleHistory(connection, curs):
                 return
 
     # get vehicle history from database
-    query = "SELECT  h.serial_no, count(DISTINCT a1.transaction_id), \
-            avg(a1.price), count(DISTINCT t.ticket_no) \
+    query = "SELECT  h.serial_no, count(DISTINCT transaction_id), \
+            avg(price), count(DISTINCT t.ticket_no) \
             FROM    vehicle h, auto_sale a1, ticket t \
             WHERE   t.vehicle_id (+) = h.serial_no AND \
                     a1.vehicle_id (+) = h.serial_no AND \
@@ -201,9 +201,14 @@ def VehicleHistory(connection, curs):
         # these can't possibly be null
         print(" Serial Numer: ", v_history[0])
         print(" Number of Sale Transactions: ", v_history[1])
+        
+        # format average price for printing considering case if not been in any transactions yet
+        if not v_history[2]:
+            price = Decimal(0.00)
+        else:
+            price = Decimal(v_history[2])   
+            price = round(price,2)
 
-        price = Decimal(v_history[2])   # format price
-        price = round(price,2)
         print(" Average Price Sold For: $", price)
         print(" Number of Violations Involved in: ", v_history[3])
        
