@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 #error handling for birthday
 def DateErrCheck(connection, curs):
@@ -36,7 +37,8 @@ def FloatErrCheck( a_str ):
     while (format_err):
         measurement = input("Enter " + a_str + " (between 0.00 and 999.99): ")
         try:
-            float(measurement)
+            measurement = Decimal(measurement)
+            measurement = round(measurement,2)
         except:
             print("Invalid input: must be number between 0.00 and 999.99: ")
             exit = input("Would you like to try that again? (y/n): ")
@@ -51,10 +53,21 @@ def StrErrCheck( a_str, max_len):
     len_err = True
     while (len_err):
         descriptor = input ("Enter person's " + a_str + ": ")
-        if (len(a_str) <= max_len):
-            len_err = False
+        if (len(descriptor) <= max_len) :
+            # name must not be null 
+            if a_str == "name":
+                if descriptor != "":
+                    len_err =  False
+                else: # name is null 
+                    print("Invalid input: You must enter a name")
+                    exit = input("Would you like to try that again? (y/n): ")
+                    if (exit == "n" or exit == "N"):
+                        return "EXIT"
+            # all other descriptors may be null 
+            else:
+                len_err = False
         else:
-            print("Invalid input: Must be <=", + max_len, + "digits long")
+            print("Invalid input: Must be <=", max_len, "digits long")
             exit = input("Would you like to try that again? (y/n): ")
             if (exit == "n" or exit == "N"):
                 return "EXIT"

@@ -10,7 +10,7 @@ def OwnerCheck(seller_id, vehicle_id, connection, curs):
     command = "SELECT owner_id FROM owner WHERE vehicle_id = %s AND owner_id = %s" % (vehicle_id, seller_id)
     curs.execute(command)
     if ( None == curs.fetchone()):
-        print("Invalid input: seller does not own vehicle.")
+        print("Invalid input: seller does not own vehicle. Please try that again.")
         return True
     else:
         return False
@@ -275,6 +275,9 @@ def AutoTransaction(connection, curs):
         curs.executemany( "INSERT into auto_sale VALUES (:1, :2, :3, :4, :5, :6)", data)
 
         print("\nAuto Sale Transaction was succesfully added to database.")
+        
+        # exit loop succesfully
+        exit = True         
 
     if (exit == False):
         print("\nAuto Sale Transaction was not added to database. Please try again.")
