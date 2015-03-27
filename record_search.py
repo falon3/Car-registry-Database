@@ -66,7 +66,7 @@ def DriverRecord(connection, curs):
         
             # could possibly be null
             if row[3]:
-                print(" Date of Birth: ", row[3].date)
+                print(" Date of Birth: ", row[3].date())
             else:
                 print(" Date of Birth: ")
 
