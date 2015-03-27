@@ -43,6 +43,9 @@ import datetime
 def NewDriver(connection, curs):
     newRecUI()
     sin = requestSIN()
+    if not sin:
+        print("No records were created. Returning to main menu... \n\n")
+        return
     if recordExists(sin,'drive_licence',connection,curs):
         print("Error: that driver already has a license!")
         print("Returning to main menu...")
@@ -54,8 +57,10 @@ def NewDriver(connection, curs):
         if not rval:
             print("No records were created. Returning to main menu... \n\n")
             return
-        newDriverUI(sin,connection,curs)
-    
+        rval = newDriverUI(sin,connection,curs)
+        if not rval:
+            print("No records were created. Returning to main menu... \n\n")
+            return
             
 """
 newPeopleUI
@@ -68,6 +73,7 @@ Displays prompt and instructions for creating a new people record.
 """
 def newPeopleUI(sin,connection,curs):
     print("New people record required.")
+    print("Please enter the required information (leave blank and enter to quit).")
     fields = ('sin', 'name', 'height', 'weight', 'eyecolor', 'haircolor', 'addr', 'gender', 'birthday')
     descript = {}
     descript['sin'] = "SIN"
@@ -83,25 +89,42 @@ def newPeopleUI(sin,connection,curs):
     indict = {}
     indict['sin'] = sin
     indict['name'] = requestName()
+    if not indict['name']:
+        return 0
     indict['height'] = requestBodyStats('height')
+    if not indict['height']:
+        return 0
     indict['weight'] = requestBodyStats('weight')
+    if not indict['weight']:
+        return 0
     indict['eyecolor'] = requestCharT('eye color')
+    if not indict['eyecolor']:
+        return 0
     indict['haircolor'] = requestCharT('hair color')
+    if not indict['haircolor']:
+        return 0
     indict['addr'] = requestAddr()
+    if not indict['addr']:
+        return 0
     indict['gender'] = requestGender()
+    if not indict['gender']:
+        return 0
     indict['birthday'] = requestDate('birthday')
+    if not indict['birthday']:
+        return 0
 
     print()
     print("You have entered the following information:")
     for x in fields:
         print(descript[x] + ':',indict[x])
-    if verifyYN():
+    flag = verifyYN()
+    if flag == 1:
         stmt = "INSERT INTO PEOPLE " + str(fields).replace("'","") \
         + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(", ",", :")
         curs.execute(stmt,indict)
         print("\nNew record has been created in people.\n\n")
         return 1
-    else:
+    elif flag == -1:
         return newPeopleUI(sin,connection,curs)
     # we should never reach this point
     return 0
@@ -118,6 +141,7 @@ Displays prompt and instructions for creating a new driving licence record.
 """
 def newDriverUI(sin,connection,curs):
     print("Now creating new driving licence record.")
+    print("Please enter the required information (leave blank and enter to quit).")
     fields = ('licence_no','sin','class','photo','issuing_date','expiring_date')
     descript = {}
     descript['licence_no'] = "Licence number"
@@ -129,12 +153,22 @@ def newDriverUI(sin,connection,curs):
     
     indict = {}
     indict['licence_no'] = requestLicence(connection, curs)
+    if not indict['licence_no']:
+        return 0
     indict['sin'] = sin
     indict['class'] = requestCharT('licence class')
+    if not indict['class']:
+        return 0
     p = requestPhoto()
     indict['photo'] = p[0]
+    if not p[1]:
+        return 0
     indict['issuing_date'] = requestDate('licence date of issue')
+    if not indict['issuing_date']:
+        return 0
     indict['expiring_date'] = requestDate('licence date of expiry')
+    if not indict['expiring_date']:
+        return 0
 
     print()
     print("You have entered the following information:")
@@ -143,7 +177,8 @@ def newDriverUI(sin,connection,curs):
             print(descript[x] + ':',indict[x])
         else:
             print(descript[x] + ':', p[1])
-    if verifyYN():
+    flag = verifyYN()
+    if flag == 1:
         curs.setinputsizes(photo=cx_Oracle.BLOB)
         stmt = "INSERT INTO DRIVE_LICENCE " + str(fields).replace("'","") \
         + " VALUES " + str(fields).replace("'", "").replace("(","(:").replace(", ",", :")
@@ -151,8 +186,8 @@ def newDriverUI(sin,connection,curs):
         print("\nNew record has been created in drive_licence.\n\n")
         errval = createRestrictions(indict['licence_no'], connection, curs)
         return errval
-    else:
-        newPeopleUI(sin,connection,curs)
+    elif flag == -1:
+        return newDriverUI(sin,connection,curs)
     # we should never reach this point
     return 0
 
@@ -228,6 +263,8 @@ def newRecUI():
     name, height, weight, eye color, hair color, address, gender and
     birth date.
     All data entered will be truncated to the correct length.
+    To exit the process at any point, press enter without entering a 
+    value.
     You will be asked for confirmation before the record is created.
     
     """
@@ -242,12 +279,14 @@ Return value: 1 if yes, 0 if no
 
 def verifyYN():
 
-    ans = input("Is this correct? (y/n): ")
-    while not (ans == 'y' or ans == 'n'):
-        ans = input("Invalid input, please enter y or n: ")
+    ans = input("Is this correct? (y/n/q): ")
+    while not (ans == 'y' or ans == 'n' or ans == 'q'):
+        ans = input("Invalid input, please enter y or n or q: ")
     if ans == 'y':
         return 1
     if ans == 'n':
+        return -1
+    if ans == 'q':
         return 0
 """
 requestPhoto
@@ -261,13 +300,16 @@ def requestPhoto():
     done = 0
     while not done:
         photoname = input("Please enter the filename of the driver's photo: ")
-        try:
-            photofile = open(photoname, 'rb')
-        except:
-            print(errinputs)
+        if photoname:
+            try:
+                photofile = open(photoname, 'rb')
+            except:
+                print(errinputs)
+            else:
+                done = 1
         else:
-            done = 1
-    photo = photofile.read()
+            return 0, 0
+        photo = photofile.read()
     return photo,photoname
 
 """
@@ -282,13 +324,17 @@ You entered an invalid SIN number. SIN numbers must be 9 digits long
 and devoid of external formatting, i.e. 123456789.
 Please enter the new driver's SIN number again: """
     sin = input("Please enter the new driver's SIN number (9 digits): ")
-    while not (sin.isdigit()):
+    while not (sin.isdigit() or sin == ''):
         sin = input(errinputs)
+    if sin == '':
+        return 0
     print("You have entered:", sin)
-    if verifyYN():
+    flag = verifyYN()
+    if flag == 1:
         return sin[:15]
-    else:
+    elif flag == -1:
         return requestSIN()
+    return 0
 
 """
 requestLicence
@@ -311,16 +357,20 @@ Please enter the new driver's SIN number again: """
 The licence number you have entered already exists. Licence numbers
 must be 9 digits long and devoid of external formatting, i.e. 123456789."""
     licence = input("Please enter the new driver's licence number (9 digits): ")
-    while not (licence.isdigit()):
+    while not (licence.isdigit() or licence==''):
         licence = input(errinputs)
+    if licence == '':
+        return 0
     print("You have entered:", licence)
-    if verifyYN():
+    flag == verifyYN()
+    if flag == 1:
         if licenceExists(licence, 'drive_licence', connection, curs):
             print(existserr)
             return requestLicence(connection,curs)
         return licence
-    else:
+    elif flag == -1:
         return requestLicence(connection,curs)    
+    return 0
 
         
 """
@@ -334,6 +384,8 @@ def requestDate(type):
     done = 0
     while not done:
         vdate = input(query)
+        if vdate == '':
+            return 0
         try:
             vdate = datetime.datetime.strptime(vdate, "%y-%m-%d")
         except:
@@ -353,7 +405,7 @@ def requestGender():
 You entered an invalid gender. Please enter only 'm' or 'f'.
 Please enter the driver's gender again: """
     gender = input("Please enter the driver's gender (m or f) : ")
-    while not (gender == 'm' or gender == 'f'):
+    while not (gender == 'm' or gender == 'f' or gender == ''):
         gender = input(errinputs)
     return gender[:1]
     
@@ -376,8 +428,18 @@ Parameters: type (height or weight)
 Return value: float that is formatted correctly for 5.2
 """
 def requestBodyStats(type):
-    query = "Please enter the driver's %s (to 2 d.p.): " % type
-    inpt = input(query)
+    done = 0
+    while not done:
+        done = 1
+        query = "Please enter the driver's %s (to 2 d.p.): " % type
+        inpt = input(query)
+        if inpt == '':
+            return 0
+        try:
+            float(inpt)
+        except:
+            print("Input should be a number. ")
+            done = 0
     return float('%5.2f'%float(inpt))
     
 """

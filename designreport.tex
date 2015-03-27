@@ -62,12 +62,13 @@ Return value: None
 
 
 \subsection{Inherits}
-From \texttt{cx\_Oracle}: \texttt{DatabaseError, connect}\\
-From \texttt{new\_vehicle}: \texttt{NewVehicle}\\
-From \texttt{new\_auto\_transaction}: \texttt{AutoTransaction}\\
-From \texttt{new\_driver}: \texttt{NewDriver}\\
-From \texttt{violation\_record}: \texttt{ViolationRecord}\\
-From \texttt{record\_search}: \texttt{RecordSearch}
+From \texttt{cx\_Oracle}: \texttt{DatabaseError, connect} - for database connection functionality.\\
+\texttt{getpass} - For password handling.
+From \texttt{new\_vehicle}: \texttt{NewVehicle} - for adding new vehicles\\
+From \texttt{new\_auto\_transaction}: \texttt{AutoTransaction} - for adding new vehicle transactions\\
+From \texttt{new\_driver}: \texttt{NewDriver} - for adding new driver licence records\\
+From \texttt{violation\_record}: \texttt{ViolationRecord} - for adding new violation records \\
+From \texttt{record\_search}: \texttt{RecordSearch} - for search functionality
 
 %%% new_vehicle module
 \newpage
@@ -75,7 +76,7 @@ From \texttt{record\_search}: \texttt{RecordSearch}
 This module handles the registration of a new vehicle.
 \subsection{Interfaces}
 The module should be entered via calling the function \texttt{NewVehicle}. It is called by the main module.
-References \texttt{new\_driverperson} via \texttt{NewPerson}.
+References \texttt{new\_person} via \texttt{NewPerson}.
 \subsection{Functions}
 \subsubsection{\texttt{NewVehicle}}
 Description:\\
@@ -103,7 +104,6 @@ Information needed from the user:
 \begin{itemize}
 \item It is only possible to have one secondary owner
 \item All vehicles must have one primary owner
-\item User enters SINs that are 9 digits long
 \item There are some valid type\_ids already entered in the 
       vehicle\_type table
 \end{itemize}
@@ -163,7 +163,7 @@ Information needed from the user:
 \noindent Assumptions:
 \begin{itemize}
 \item The user will enter valid alpha strings (spaces permitted)
-\item The SIN is valid (9 digits long) and does not already
+\item The SIN does not already
       exist in the database
 \end{itemize}
 
